@@ -1,0 +1,37 @@
+{
+  "name": "norms",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "bin": {
+    "norms": "./dist/norms.js"
+  },
+  "scripts": {
+    "build": "bun run build:cli && bun run build:vscode",
+    "build:cli": "bun build packages/cli/src/index.tsx --target=bun --outfile=dist/norms.js",
+    "build:vscode": "bun build packages/vscode/src/extension.ts --target=node --outfile=packages/vscode/dist/extension.js --external=vscode",
+    "check": "tsc --noEmit",
+    "dev": "bun packages/cli/src/index.tsx",
+    "lint": "bun run check",
+    "package": "bun build packages/cli/src/index.tsx --compile --outfile=dist/norms",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "ink": "^6.3.1",
+    "minimatch": "^10.0.3",
+    "react": "^19.1.1",
+    "react-devtools-core": "^7.0.1",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.21",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.12",
+    "@types/vscode": "^1.103.0",
+    "typescript": "^5.9.2"
+  }
+}

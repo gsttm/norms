@@ -1,0 +1,46 @@
+{
+  "name": "norms-vscode",
+  "displayName": "Norms",
+  "description": "Shows active Git-backed norms and their scope.",
+  "version": "0.0.1",
+  "publisher": "norms",
+  "engines": {
+    "vscode": "^1.103.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onView:norms.active",
+    "onCommand:norms.refresh",
+    "onCommand:norms.showContext"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "norms.refresh",
+        "title": "Norms: Refresh"
+      },
+      {
+        "command": "norms.showContext",
+        "title": "Norms: Show Context for Active File"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "norms.active",
+          "name": "Norms"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "norms.refresh",
+          "when": "view == norms.active",
+          "group": "navigation"
+        }
+      ]
+    }
+  }
+}

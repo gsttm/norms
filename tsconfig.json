@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "paths": {
+      "@norms/core": ["packages/core/src/index.ts"],
+      "@norms/git": ["packages/git/src/index.ts"],
+      "@norms/providers": ["packages/providers/src/index.ts"],
+      "@norms/ui": ["packages/ui/src/index.tsx"]
+    },
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2023",
+    "types": ["bun", "node", "vscode"]
+  },
+  "include": ["packages/**/*.ts", "packages/**/*.tsx"]
+}

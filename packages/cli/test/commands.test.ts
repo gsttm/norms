@@ -1,0 +1,65 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { runGit } from "@norms/git";
+import { loadNorms, readLockfile, serializeNorm } from "@norms/core";
+import { checkProject, initProject, proposeNorm, syncProject } from "../src/commands";
+
+const roots: string[] = [];
+
+afterEach(() => {
+  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+});
+
+describe("CLI commands", () => {
+  test("init imports existing agent instructions", () => {
+    const root = fixture();
+    writeFileSync(join(root, "AGENTS.md"), "# Existing\n\nKeep this rule.\n");
+    const result = initProject(root);
+    expect(result.summary).toBe("Norms initialized.");
+    expect(existsSync(join(root, ".norms/norms/repository/imported-agent-instructions.md"))).toBe(true);
+    expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toContain("Keep this rule.");
+  });
+
+  test("propose, sync, and check form an end-to-end loop", () => {
+    const root = fixture();
+    initProject(root, false);
+    proposeNorm(root, { id: "backend.repositories", scopes: ["src/controllers/**"], body: "Use repositories." });
+    syncProject(root);
+    expect(checkProject(root).data).toEqual({ valid: true, norms: 1, imports: 0 });
+    expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toContain("backend.repositories");
+  });
+
+  test("sync composes and pins a Git source", () => {
+    const root = fixture();
+    const shared = fixture();
+    mkdirSync(join(shared, ".norms/norms"), { recursive: true });
+    writeFileSync(
+      join(shared, ".norms/norms/shared.md"),
+      serializeNorm("shared.typescript", ["**/*.ts"], "Use TypeScript."),
+    );
+    runGit(shared, ["config", "user.name", "Norms Test"]);
+    runGit(shared, ["config", "user.email", "norms@example.test"]);
+    runGit(shared, ["add", ".norms/norms/shared.md"]);
+    runGit(shared, ["commit", "--quiet", "-m", "Add shared norm"]);
+
+    mkdirSync(join(root, ".norms/norms"), { recursive: true });
+    writeFileSync(
+      join(root, ".norms/config.yaml"),
+      `version: 1\nsources:\n  - name: repository\n    path: norms\n  - name: shared\n    git: ${JSON.stringify(shared)}\n    ref: HEAD\n    path: .norms/norms\n`,
+    );
+    syncProject(root);
+
+    expect(loadNorms(root).map(({ id }) => id)).toEqual(["shared.typescript"]);
+    expect(readLockfile(root).sources[0]?.commit).toMatch(/^[0-9a-f]{40}$/);
+    expect(checkProject(root).data).toEqual({ valid: true, norms: 1, imports: 1 });
+  });
+});
+
+function fixture(): string {
+  const root = mkdtempSync(join(tmpdir(), "norms-cli-"));
+  roots.push(root);
+  runGit(root, ["init", "--quiet"]);
+  return root;
+}
