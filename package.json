@@ -19,6 +19,7 @@
     "lint": "bun run check",
     "package": "bun build packages/cli/src/index.tsx --compile --outfile=dist/norms",
     "package:release": "bun scripts/build-release.ts",
+    "test:e2e": "bun test packages/cli/test/workflow.e2e.test.ts",
     "test:installer": "sh scripts/test-installer.sh",
     "test": "bun test"
   },

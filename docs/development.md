@@ -6,6 +6,7 @@ Requires Git and Bun 1.4 or newer.
 bun install
 bun run check
 bun test
+bun run test:e2e
 bun run test:installer
 bun run build
 ./dist/norms.js --help
@@ -28,5 +29,6 @@ Generated outputs and `node_modules/` are ignored. Run `bun run build` after CLI
 
 - `bun run check`: strict TypeScript validation.
 - `bun test`: core, CLI, Git, and provider tests.
+- `bun run test:e2e`: two-repository CLI workflow.
 - `bun run test:installer`: installer selection and checksum tests.
 - `./dist/norms.js check --json`: repository Norms validation.
