@@ -19,6 +19,10 @@ describe("CLI commands", () => {
     const result = initProject(root, true, cache(root));
     expect(result.summary).toBe("Norms initialized.");
     expect((result.data as { seeded: string[] }).seeded).toHaveLength(9);
+    expect((result.data as { created: string[] }).created).toContain(".norms/config.yaml");
+    expect(result.details).toContain("created .norms/");
+    expect(result.details).not.toContain("created .norms/config.yaml");
+    expect(result.details).toContain("imported existing AGENTS.md");
     expect(existsSync(cache(root))).toBe(true);
     expect(existsSync(join(root, ".norms/norms/repository/imported-agent-instructions.md"))).toBe(true);
     expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toContain("Keep this rule.");

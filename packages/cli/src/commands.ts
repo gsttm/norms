@@ -75,6 +75,7 @@ export function initProject(
   writeIfMissing(join(directory, ".gitignore"), "imports/*\n!imports/.gitkeep\n", root, created);
   writeIfMissing(join(directory, "assets/.gitkeep"), "", root, created);
   writeIfMissing(join(directory, "imports/.gitkeep"), "", root, created);
+  const scaffoldCreated = created.length > 0;
 
   const seeded: string[] = [];
   for (const norm of starter.norms) {
@@ -87,6 +88,7 @@ export function initProject(
 
   const adapterPath = join(root, "AGENTS.md");
   const importedPath = join(directory, "norms/repository/imported-agent-instructions.md");
+  let importedExisting = false;
   if (importExisting && existsSync(adapterPath)) {
     const existing = readFileSync(adapterPath, "utf8");
     if (!isGeneratedAdapter(existing) && !existsSync(importedPath)) {
@@ -96,13 +98,19 @@ export function initProject(
         serializeNorm("repository.imported-agent-instructions", ["**/*"], existing),
       );
       created.push(relativeName(root, importedPath));
+      importedExisting = true;
     }
   }
 
   const sync = syncProject(root);
   return {
     summary: "Norms initialized.",
-    details: [...created.map((path) => `created ${path}`), `seeded ${seeded.length} starter meta-norms`, ...sync.details],
+    details: [
+      ...(scaffoldCreated ? ["created .norms/"] : []),
+      ...(importedExisting ? ["imported existing AGENTS.md"] : []),
+      ...(seeded.length ? [`seeded ${seeded.length} starter meta-norms`] : []),
+      ...sync.details,
+    ],
     data: { created, seeded, starterCache: cacheFile, ...sync.data as object },
   };
 }
@@ -216,7 +224,7 @@ export function syncProject(root: string, update = false): CommandResult {
     return {
       summary: update ? "Norms updated." : "Norms synced.",
       details: [
-        `${update ? "updated" : "restored"} ${remoteSources.length} import${remoteSources.length === 1 ? "" : "s"}`,
+        ...(remoteSources.length ? [`${update ? "updated" : "restored"} ${remoteSources.length} import${remoteSources.length === 1 ? "" : "s"}`] : []),
         ...(state.migratedFrom ? [`migrated lockfile from version ${state.migratedFrom}`] : []),
         `generated AGENTS.md with ${norms.length} norm${norms.length === 1 ? "" : "s"}`,
       ],
