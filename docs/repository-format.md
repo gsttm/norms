@@ -45,3 +45,5 @@ sources:
 ```
 
 Git sources are read-only in consumers and reproducible through `lock.json`. Use `norms sync --update` to change pins; plain `norms sync` preserves them and repairs materialized imports.
+
+`norms init` copies the installed starter meta-norms into `norms/meta/`. Those copies become ordinary canonical project norms.

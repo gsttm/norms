@@ -4,7 +4,7 @@ In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` 
 
 | Command | Usage |
 | --- | --- |
-| `norms init [--no-import]` | Create `.norms/`, optionally import existing instructions, and generate `AGENTS.md`. |
+| `norms init [--no-import]` | Create `.norms/`, seed cached starter meta-norms, optionally import existing instructions, and generate `AGENTS.md`. |
 | `norms list` | List active norms, scopes, and sources. |
 | `norms context [path]` | Return all active norms or only those matching a path. |
 | `norms status` | Report adapter, import, and Git state. |
@@ -28,3 +28,5 @@ In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` 
 Run `sync --update` after adding, removing, or changing a Git source. Plain `sync` preserves pins, migrates version-1 lockfiles, and restores the previous valid state if resolution fails.
 
 `review` also accepts `--body`, `--base`, and `--branch`. It requires authenticated `gh` or `glab` and changes Git state.
+
+`init` never overwrites project norms. It reads `meta-norms.json` from `NORMS_CACHE_DIR`, then `XDG_CACHE_HOME/norms`, then `~/.cache/norms`; a missing cache is rebuilt from the executable.

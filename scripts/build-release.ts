@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
+import { serializeStarterPack } from "../packages/core/src/index";
 
 const builds = [
   ["bun-darwin-arm64", "norms-darwin-arm64"],
@@ -29,6 +30,10 @@ for (const [target, name] of builds) {
   files.push(file);
 }
 
+const starterPack = join(directory, "norms-meta-norms.json");
+writeFileSync(starterPack, serializeStarterPack());
+files.push(starterPack);
+
 const checksums = files
   .sort()
   .map((file) => `${createHash("sha256").update(readFileSync(file)).digest("hex")}  ${basename(file)}`)
@@ -37,4 +42,4 @@ writeFileSync(join(directory, "SHA256SUMS"), `${checksums}\n`);
 for (const name of readdirSync(directory)) {
   if (name.endsWith(".bun-build")) unlinkSync(join(directory, name));
 }
-console.log(`Built ${files.length} release binaries in dist/release.`);
+console.log(`Built ${files.length} release assets in dist/release.`);

@@ -6,7 +6,9 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
+import { homedir } from "node:os";
 import {
+  STARTER_PACK,
   generateAgentAdapter,
   isGeneratedAdapter,
   loadNorms,
@@ -16,9 +18,11 @@ import {
   normsForPath,
   readConfig,
   readLockfileState,
+  readStarterPack,
   renderContext,
   resolveSourceDirectory,
   serializeNorm,
+  serializeStarterPack,
   type Lockfile,
   type Norm,
 } from "@norms/core";
@@ -41,7 +45,12 @@ export interface CommandResult<T = unknown> {
   data: T;
 }
 
-export function initProject(root: string, importExisting = true): CommandResult {
+export function initProject(
+  root: string,
+  importExisting = true,
+  cacheFile = starterCacheFile(),
+): CommandResult {
+  const starter = loadStarterPack(cacheFile);
   const directory = normsDirectory(root);
   const created: string[] = [];
   for (const path of [
@@ -67,6 +76,15 @@ export function initProject(root: string, importExisting = true): CommandResult 
   writeIfMissing(join(directory, "assets/.gitkeep"), "", root, created);
   writeIfMissing(join(directory, "imports/.gitkeep"), "", root, created);
 
+  const seeded: string[] = [];
+  for (const norm of starter.norms) {
+    const target = join(directory, "norms", norm.path);
+    if (existsSync(target)) continue;
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, norm.content);
+    seeded.push(relativeName(root, target));
+  }
+
   const adapterPath = join(root, "AGENTS.md");
   const importedPath = join(directory, "norms/repository/imported-agent-instructions.md");
   if (importExisting && existsSync(adapterPath)) {
@@ -84,8 +102,8 @@ export function initProject(root: string, importExisting = true): CommandResult 
   const sync = syncProject(root);
   return {
     summary: "Norms initialized.",
-    details: [...created.map((path) => `created ${path}`), ...sync.details],
-    data: { created, ...sync.data as object },
+    details: [...created.map((path) => `created ${path}`), `seeded ${seeded.length} starter meta-norms`, ...sync.details],
+    data: { created, seeded, starterCache: cacheFile, ...sync.data as object },
   };
 }
 
@@ -279,6 +297,21 @@ function writeIfMissing(path: string, content: string, root: string, created: st
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
   created.push(relativeName(root, path));
+}
+
+function starterCacheFile(): string {
+  const directory = process.env.NORMS_CACHE_DIR
+    ?? (process.env.XDG_CACHE_HOME ? join(process.env.XDG_CACHE_HOME, "norms") : undefined)
+    ?? (process.platform === "win32" && process.env.LOCALAPPDATA ? join(process.env.LOCALAPPDATA, "norms") : undefined)
+    ?? join(homedir(), ".cache", "norms");
+  return join(directory, "meta-norms.json");
+}
+
+function loadStarterPack(path: string) {
+  if (existsSync(path)) return readStarterPack(readFileSync(path, "utf8"));
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, serializeStarterPack());
+  return STARTER_PACK;
 }
 
 function lockedSource(source: { name: string; git?: string; ref?: string }, lockfile: Lockfile) {

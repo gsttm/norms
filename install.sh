@@ -28,6 +28,7 @@ case "$(uname -m)" in
 esac
 
 asset="norms-$os-$arch"
+starter="norms-meta-norms.json"
 base="${NORMS_RELEASES_URL:-https://github.com/gsttm/norms/releases}"
 base="${base%/}"
 if [ "$version" = "latest" ]; then
@@ -50,21 +51,31 @@ download() {
 }
 
 download "$release/$asset" "$temporary/$asset"
+download "$release/$starter" "$temporary/$starter"
 download "$release/SHA256SUMS" "$temporary/SHA256SUMS"
-expected="$(awk -v asset="$asset" '$2 == asset { print $1 }' "$temporary/SHA256SUMS")"
-[ -n "$expected" ] || fail "checksum missing for $asset"
-if command -v sha256sum >/dev/null 2>&1; then
-  actual="$(sha256sum "$temporary/$asset" | awk '{ print $1 }')"
-elif command -v shasum >/dev/null 2>&1; then
-  actual="$(shasum -a 256 "$temporary/$asset" | awk '{ print $1 }')"
-else
-  fail "sha256sum or shasum is required"
-fi
-[ "$actual" = "$expected" ] || fail "checksum verification failed"
+
+verify() {
+  expected="$(awk -v asset="$1" '$2 == asset { print $1 }' "$temporary/SHA256SUMS")"
+  [ -n "$expected" ] || fail "checksum missing for $1"
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual="$(sha256sum "$temporary/$1" | awk '{ print $1 }')"
+  elif command -v shasum >/dev/null 2>&1; then
+    actual="$(shasum -a 256 "$temporary/$1" | awk '{ print $1 }')"
+  else
+    fail "sha256sum or shasum is required"
+  fi
+  [ "$actual" = "$expected" ] || fail "checksum verification failed for $1"
+}
+
+verify "$asset"
+verify "$starter"
 
 install_dir="${NORMS_INSTALL_DIR:-${XDG_BIN_HOME:-${HOME:?HOME is required}/.local/bin}}"
 mkdir -p "$install_dir"
 install -m 0755 "$temporary/$asset" "$install_dir/norms"
+cache_dir="${NORMS_CACHE_DIR:-${XDG_CACHE_HOME:-${HOME:?HOME is required}/.cache}/norms}"
+mkdir -p "$cache_dir"
+install -m 0644 "$temporary/$starter" "$cache_dir/meta-norms.json"
 "$install_dir/norms" --version
 
 case ":${PATH:-}:" in

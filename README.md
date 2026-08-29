@@ -14,10 +14,10 @@ On macOS or Linux:
 curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | sh
 ```
 
-This installs the latest checksum-verified binary to `~/.local/bin`. Set `NORMS_INSTALL_DIR` or `NORMS_VERSION` on `sh` to override the directory or pin a version:
+This installs the latest checksum-verified binary to `~/.local/bin` and starter meta-norms to `~/.cache/norms`. Set `NORMS_INSTALL_DIR`, `NORMS_CACHE_DIR`, or `NORMS_VERSION` on `sh` to override the defaults:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | NORMS_VERSION=v0.0.1 sh
+curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | NORMS_VERSION=v0.0.2 sh
 ```
 
 Public releases include SHA-256 checksums and GitHub build-provenance attestations.
@@ -43,7 +43,7 @@ Norm Markdown lives in `.norms/norms/`. `.norms/config.yaml` composes sources, `
 
 | Command | Purpose |
 | --- | --- |
-| `norms init` | Initialize Norms and import existing agent instructions. |
+| `norms init` | Initialize Norms, starter meta-norms, and existing agent instructions. |
 | `norms list` | List active norms and sources. |
 | `norms context [path]` | Return norms applicable to a path. |
 | `norms status` | Show sync and Git state. |

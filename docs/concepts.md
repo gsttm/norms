@@ -10,6 +10,8 @@ Norms stores durable agent instructions in Git. Norms resolves applicable contex
 
 A norm is Markdown with a stable `id` and optional `applies_to` globs. Its body defines one reusable instruction. Every active norm matching a file must be followed.
 
+Identical definitions of one id compose with combined provenance. Different definitions of one id are a conflict.
+
 `source` records provenance, not priority. Contradictions require human clarification and a canonical deconfliction change.
 
 ## Sources

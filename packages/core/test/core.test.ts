@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -7,7 +7,10 @@ import {
   loadNorms,
   normApplies,
   parseNorm,
+  readStarterPack,
   serializeNorm,
+  serializeStarterPack,
+  STARTER_PACK,
 } from "../src/index";
 
 const roots: string[] = [];
@@ -31,10 +34,17 @@ describe("norms core", () => {
 
   test("rejects duplicate ids", () => {
     const root = fixture();
+    writeFileSync(join(root, ".norms/norms/a.md"), serializeNorm("coding.typescript", ["**/*"], "Use TypeScript."));
+    writeFileSync(join(root, ".norms/norms/b.md"), serializeNorm("coding.typescript", ["**/*"], "Use JavaScript."));
+    expect(() => loadNorms(root)).toThrow("Conflicting norm id");
+  });
+
+  test("combines provenance for identical ids", () => {
+    const root = fixture();
     const norm = serializeNorm("coding.typescript", ["**/*"], "Use TypeScript.");
     writeFileSync(join(root, ".norms/norms/a.md"), norm);
     writeFileSync(join(root, ".norms/norms/b.md"), norm);
-    expect(() => loadNorms(root)).toThrow("Duplicate norm id");
+    expect(loadNorms(root)).toHaveLength(1);
   });
 
   test("generates a deterministic adapter", () => {
@@ -50,6 +60,12 @@ describe("norms core", () => {
     expect(first).toContain("provenance, not priority");
     expect(first).toContain("report the conflict");
     expect(first).not.toMatch(/VISION\.md|TypeScript|Bun|React|Ink|Yoga/);
+  });
+
+  test("packages every canonical meta-norm", () => {
+    const files = readdirSync(join(import.meta.dir, "../../../.norms/norms/meta")).sort();
+    expect(STARTER_PACK.norms.map(({ path }) => path.replace("meta/", ""))).toEqual(files);
+    expect(readStarterPack(serializeStarterPack())).toEqual(STARTER_PACK);
   });
 });
 

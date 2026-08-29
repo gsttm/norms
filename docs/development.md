@@ -12,7 +12,7 @@ bun run build
 ./dist/norms.js --help
 ```
 
-Use `bun run dev -- <args>` to run TypeScript directly. `bun run package` compiles the local executable; `bun run package:release` builds every release target and its checksum manifest.
+Use `bun run dev -- <args>` to run TypeScript directly. Set `NORMS_CACHE_DIR` to isolate init tests. `bun run package` compiles the local executable; `bun run package:release` builds every release target, the starter pack, and checksums.
 
 Use sibling `../norms_sandbox` as the sample consumer project for deployment and end-to-end tests. Inspect it before changing it.
 
@@ -20,7 +20,7 @@ Use sibling `../norms_sandbox` as the sample consumer project for deployment and
 
 - `dist/norms.js`: bundled Bun CLI.
 - `dist/norms`: compiled standalone CLI.
-- `dist/release/`: cross-platform binaries and `SHA256SUMS`.
+- `dist/release/`: cross-platform binaries, `norms-meta-norms.json`, and `SHA256SUMS`.
 - `packages/vscode/dist/extension.js`: bundled VS Code extension.
 
 Generated outputs and `node_modules/` are ignored. Run `bun run build` after CLI, UI, core, or extension changes.

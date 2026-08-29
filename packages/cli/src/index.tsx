@@ -18,7 +18,7 @@ import {
 const HELP = `norms <command> [options]
 
 Commands:
-  init                  Initialize .norms and AGENTS.md
+  init                  Initialize starter norms and AGENTS.md
   list                  List active norms
   context [path]        Print applicable norms
   status                Show sync and Git state

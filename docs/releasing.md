@@ -12,7 +12,7 @@ git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
-The tag workflow repeats verification, builds macOS, Linux, and Windows binaries for x64 and arm64, verifies `SHA256SUMS`, attests every asset, publishes the release, and tests the public installer.
+The tag workflow repeats verification, builds macOS, Linux, and Windows binaries plus the starter meta-norm pack, verifies `SHA256SUMS`, attests every asset, publishes the release, and tests the public installer.
 
 Re-run an existing release without replacing its assets:
 

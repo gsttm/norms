@@ -17,3 +17,4 @@
 | August 29, 2026 at 4:16 PM PST | Sandbox testing norm | Designated `norms_sandbox` as the sample consumer project for deployment and end-to-end tests. |
 | August 29, 2026 at 4:21 PM PST | Golden consumer workflow | Added two-repository CLI coverage and verified deployment in `norms_sandbox`. |
 | August 29, 2026 at 4:27 PM PST | Reproducible sync | Added offline pin restoration, explicit updates, lock migration, and rollback recovery. |
+| August 29, 2026 at 4:43 PM PST | Starter-aware init | Added checksum-protected starter meta-norm caching and idempotent project seeding. |
