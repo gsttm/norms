@@ -1,5 +1,7 @@
 # Norms — Phase 0 Engineering Handoff
 
+> Historical implementation contract. See the [README](../../README.md) and [current concepts](../concepts.md) for current behavior.
+
 ## 1. Product
 
 **Norms** is a Git-native system for defining the conventions that AI agents should follow while working in a repository.

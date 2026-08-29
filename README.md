@@ -37,3 +37,12 @@ Norm Markdown lives in `.norms/norms/`. `.norms/config.yaml` composes sources, `
 | `./dist/norms.js review` | Commit, push, and open a GitHub or GitLab review. |
 
 Add `--json` for machine-readable output.
+
+## Documentation
+
+- [Concepts](docs/concepts.md)
+- [CLI reference](docs/cli.md)
+- [Repository format](docs/repository-format.md)
+- [Code structure](docs/code-structure.md)
+- [Development](docs/development.md)
+- [Phase 0 specification](docs/specs/phase-0.md)

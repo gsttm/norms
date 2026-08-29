@@ -9,6 +9,42 @@ Do not edit this generated file. Change canonical norms in `.norms/`, use `norms
 
 # Active Norms
 
+## docs.code-structure
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Maintain code structure documentation
+
+Keep `docs/code-structure.md` at the top level of `docs/`. It must concisely identify the languages, runtimes, and frameworks; package and folder responsibilities; architectural boundaries; critical entry points; canonical files; and generated or ignored paths needed to understand the codebase.
+
+Update it whenever those facts change. Keep it current, structural, and free of implementation detail better owned by source code.
+
+## docs.refresh-major-file-changes
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Refresh docs after major file changes
+
+After a major change to a file's behavior, interface, configuration, or workflow, update every document that describes it in the same request.
+
+Documentation must state the new current truth. Remove or revise stale claims and examples; do not leave previous or planned behavior presented as current.
+
+## docs.refresh-structural-changes
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Refresh docs after structural changes
+
+After adding, removing, moving, or renaming a significant package, directory, entry point, generated path, or architectural boundary, update the structural documentation in the same request.
+
+At minimum, review `README.md`, `docs/code-structure.md`, and `docs/repository-format.md` and update every affected description or link.
+
 ## git.commit-and-push
 
 Source: `repository`

@@ -2,7 +2,7 @@
 
 | Date and time (PST) | Title | Summary |
 | --- | --- | --- |
-| August 29, 2026 at 2:49 PM PST | Phase 0 started | Started the CLI, Git storage, adapters, source composition, review providers, and VS Code visibility from `SPEC.md`. |
+| August 29, 2026 at 2:49 PM PST | Phase 0 started | Started the CLI, Git storage, adapters, source composition, review providers, and VS Code visibility from `docs/specs/phase-0.md`. |
 | August 29, 2026 at 2:49 PM PST | Phase 0 complete | Implemented Phase 0 and passed 9 tests, strict type checking, builds, native packaging, and repository-level CLI checks. |
 | August 29, 2026 at 2:53 PM PST | Universal adapter preamble | Replaced project-specific guidance with concise semantics for scope, identity, provenance, conflicts, proposals, and sync. |
 | August 29, 2026 at 2:58 PM PST | Commit message format | Added concise summaries, numbered sub-features, and human/model attribution. |
@@ -11,3 +11,4 @@
 | August 29, 2026 at 3:12 PM PST | Meta-norm safeguards | Added scope, compliance, exception, authoring, import ownership, and asset inspection rules. |
 | August 29, 2026 at 3:18 PM PST | README consolidation | Merged the vision with concise development setup and usage basics. |
 | August 29, 2026 at 3:28 PM PST | Development CLI usage | Clarified that development commands run through `./dist/norms.js`. |
+| August 29, 2026 at 3:39 PM PST | Documentation structure | Added current-state docs, moved the Phase 0 spec, and encoded documentation maintenance norms. |
