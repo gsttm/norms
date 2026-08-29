@@ -20,6 +20,8 @@ This installs the latest checksum-verified binary to `~/.local/bin`. Set `NORMS_
 curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | NORMS_VERSION=v0.0.1 sh
 ```
 
+Public releases include SHA-256 checksums and GitHub build-provenance attestations.
+
 ## Quick development setup
 
 ```sh

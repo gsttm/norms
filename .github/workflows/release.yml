@@ -3,6 +3,15 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag
+        required: true
+        type: string
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 permissions:
   attestations: write
@@ -14,21 +23,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
       - uses: oven-sh/setup-bun@v2
       - run: bun ci
       - run: bun run check
       - run: bun test
       - run: bun run test:installer
       - name: Validate tag
-        run: test "$GITHUB_REF_NAME" = "v$(bun -e 'import manifest from "./package.json"; process.stdout.write(manifest.version)')"
-      - run: bun run package:release
+        run: test "$RELEASE_TAG" = "v$(bun -e 'import manifest from "./package.json"; process.stdout.write(manifest.version)')"
+      - name: Resolve release assets
+        id: assets
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            mkdir -p dist/release
+            gh release download "$RELEASE_TAG" --dir dist/release
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - if: steps.assets.outputs.published == 'false'
+        run: bun run package:release
+      - run: sha256sum -c SHA256SUMS
+        working-directory: dist/release
       - run: ./dist/release/norms-linux-x64 --version
       - name: Attest release assets
-        if: github.event.repository.visibility == 'public'
         uses: actions/attest@v4
         with:
           subject-path: dist/release/*
       - name: Publish release
-        run: gh release create "$GITHUB_REF_NAME" dist/release/* --verify-tag --generate-notes
+        if: steps.assets.outputs.published == 'false'
+        run: gh release create "$RELEASE_TAG" dist/release/* --verify-tag --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
+      - name: Verify public installer
+        run: |
+          install_dir="$(mktemp -d)"
+          trap 'rm -rf "$install_dir"' EXIT
+          curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | PATH="$install_dir:$PATH" NORMS_INSTALL_DIR="$install_dir" NORMS_VERSION="$RELEASE_TAG" sh
+          "$install_dir/norms" --version
