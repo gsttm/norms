@@ -23,7 +23,7 @@ Commands:
   context [path]        Print applicable norms
   status                Show sync and Git state
   propose               Write a local norm proposal
-  sync                  Resolve sources and generate AGENTS.md
+  sync [--update]       Restore pins or explicitly update them
   check                 Validate config, norms, lock, and adapter
   review                Commit, push, and open a Git review
 
@@ -78,7 +78,7 @@ async function main(): Promise<void> {
       break;
     }
     case "sync":
-      result = syncProject(root);
+      result = syncProject(root, args.flags.has("update"));
       break;
     case "check":
       result = checkProject(root);
@@ -107,7 +107,7 @@ function parseArgs(args: string[]): ParsedArgs {
   const flags = new Set<string>();
   const positionals: string[] = [];
   const values = new Map<string, string[]>();
-  const booleanOptions = new Set(["force", "no-import"]);
+  const booleanOptions = new Set(["force", "no-import", "update"]);
   for (let index = 0; index < args.length; index++) {
     const value = args[index];
     if (!value.startsWith("--")) {

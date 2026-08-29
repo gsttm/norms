@@ -48,7 +48,8 @@ Norm Markdown lives in `.norms/norms/`. `.norms/config.yaml` composes sources, `
 | `norms context [path]` | Return norms applicable to a path. |
 | `norms status` | Show sync and Git state. |
 | `norms propose` | Create or update a local norm. |
-| `norms sync` | Resolve sources, pin imports, and generate `AGENTS.md`. |
+| `norms sync` | Restore pinned imports offline and generate `AGENTS.md`. |
+| `norms sync --update` | Fetch configured refs and update import pins. |
 | `norms check` | Validate config, norms, lockfile, and adapter. |
 | `norms review` | Commit, push, and open a GitHub or GitLab review. |
 

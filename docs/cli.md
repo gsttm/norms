@@ -9,7 +9,8 @@ In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` 
 | `norms context [path]` | Return all active norms or only those matching a path. |
 | `norms status` | Report adapter, import, and Git state. |
 | `norms propose --id ID` | Write a norm from `--body`, `--body-file`, or stdin. Repeat `--scope`; use `--force` to replace. |
-| `norms sync` | Refresh Git imports, write the lockfile, and generate `AGENTS.md`. |
+| `norms sync` | Restore locked imports and generate `AGENTS.md`; fetch only when a pinned commit is missing locally. |
+| `norms sync --update` | Fetch configured refs, advance pins, and generate `AGENTS.md`. |
 | `norms check` | Validate configuration, norms, imports, lockfile, and adapter. |
 | `norms review --title TITLE` | Commit Norms files, push a branch, and open a GitHub PR or GitLab MR. |
 
@@ -23,5 +24,7 @@ In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` 
 ./dist/norms.js sync
 ./dist/norms.js check
 ```
+
+Run `sync --update` after adding, removing, or changing a Git source. Plain `sync` preserves pins, migrates version-1 lockfiles, and restores the previous valid state if resolution fails.
 
 `review` also accepts `--body`, `--base`, and `--branch`. It requires authenticated `gh` or `glab` and changes Git state.

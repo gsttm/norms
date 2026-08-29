@@ -10,7 +10,7 @@
 ```
 
 - `config.yaml`: local and Git-backed sources.
-- `lock.json`: resolved imported commit SHAs.
+- `lock.json`: version-2 imported commit pins. Version 1 migrates on `norms sync`.
 - `norms/`: canonical local Markdown norms.
 - `assets/`: Git-tracked files referenced by norms.
 - `imports/`: ignored, materialized Git checkouts.
@@ -44,4 +44,4 @@ sources:
     path: .norms/norms
 ```
 
-Git sources are read-only in consumers and reproducible through `lock.json`.
+Git sources are read-only in consumers and reproducible through `lock.json`. Use `norms sync --update` to change pins; plain `norms sync` preserves them and repairs materialized imports.

@@ -2,6 +2,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
@@ -14,7 +15,7 @@ import {
   normsDirectory,
   normsForPath,
   readConfig,
-  readLockfile,
+  readLockfileState,
   renderContext,
   resolveSourceDirectory,
   serializeNorm,
@@ -22,12 +23,15 @@ import {
   type Norm,
 } from "@norms/core";
 import {
+  captureImport,
   currentBranch,
   gitState,
   importedCommit,
+  materializeGitSource,
   originUrl,
+  resolveGitSource,
+  restoreImport,
   runGit,
-  syncGitSource,
 } from "@norms/git";
 import { openReview } from "@norms/providers";
 
@@ -58,7 +62,7 @@ export function initProject(root: string, importExisting = true): CommandResult 
     root,
     created,
   );
-  writeIfMissing(join(directory, "lock.json"), `${JSON.stringify({ version: 1, sources: [] }, null, 2)}\n`, root, created);
+  writeIfMissing(join(directory, "lock.json"), `${JSON.stringify({ version: 2, sources: [] }, null, 2)}\n`, root, created);
   writeIfMissing(join(directory, ".gitignore"), "imports/*\n!imports/.gitkeep\n", root, created);
   writeIfMissing(join(directory, "assets/.gitkeep"), "", root, created);
   writeIfMissing(join(directory, "imports/.gitkeep"), "", root, created);
@@ -108,18 +112,23 @@ export function contextForProject(root: string, filePath?: string): CommandResul
 export function statusForProject(root: string): CommandResult {
   const config = readConfig(root);
   const norms = loadNorms(root);
-  const lock = readLockfile(root);
+  const lockState = readLockfileState(root);
+  const lock = lockState.lockfile;
   const adapterPath = join(root, "AGENTS.md");
   const adapterSynced =
     existsSync(adapterPath) && readFileSync(adapterPath, "utf8") === generateAgentAdapter(norms);
-  const importsSynced = config.sources
-    .filter((source) => source.git)
+  const remoteSources = config.sources.filter((source) => source.git);
+  const lockMatches = remoteSources.length === lock.sources.length && remoteSources.every((source) => {
+    const locked = lock.sources.find(({ name }) => name === source.name);
+    return locked?.git === source.git && locked?.ref === (source.ref ?? "HEAD");
+  });
+  const importsSynced = lockMatches && remoteSources
     .every((source) => {
       const locked = lock.sources.find(({ name }) => name === source.name);
       return locked && importedCommit(root, source.name) === locked.commit;
     });
   const state = gitState(root);
-  const synced = adapterSynced && importsSynced;
+  const synced = adapterSynced && importsSynced && !lockState.migratedFrom;
   return {
     summary: synced ? "Norms are synced." : "Norms need sync.",
     details: [
@@ -127,9 +136,11 @@ export function statusForProject(root: string): CommandResult {
       `sources: ${config.sources.length}`,
       `adapter: ${adapterSynced ? "synced" : "stale"}`,
       `imports: ${importsSynced ? "synced" : "stale"}`,
+      `config: ${lockMatches ? "matches lock" : "needs update"}`,
+      `lock: ${lockState.migratedFrom ? "migration needed" : "current"}`,
       `git: ${state.label}`,
     ],
-    data: { synced, adapterSynced, importsSynced, norms: norms.length, sources: config.sources.length, git: state },
+    data: { synced, adapterSynced, importsSynced, lockMigration: lockState.migratedFrom, norms: norms.length, sources: config.sources.length, git: state },
   };
 }
 
@@ -153,25 +164,62 @@ export function proposeNorm(
   };
 }
 
-export function syncProject(root: string): CommandResult {
+export function syncProject(root: string, update = false): CommandResult {
   const config = readConfig(root);
-  const locked = config.sources.filter(({ git }) => git).map((source) => syncGitSource(root, source));
-  const lockfile: Lockfile = { version: 1, sources: locked };
-  writeFileSync(join(normsDirectory(root), "lock.json"), `${JSON.stringify(lockfile, null, 2)}\n`);
-  const norms = loadNorms(root);
-  writeFileSync(join(root, "AGENTS.md"), generateAgentAdapter(norms));
-  return {
-    summary: "Norms synced.",
-    details: [`resolved ${config.sources.length} source${config.sources.length === 1 ? "" : "s"}`, `generated AGENTS.md with ${norms.length} norm${norms.length === 1 ? "" : "s"}`],
-    data: { sources: config.sources.length, norms: norms.length, lockfile },
-  };
+  const remoteSources = config.sources.filter(({ git }) => git);
+  let state;
+  try {
+    state = readLockfileState(root);
+  } catch (error) {
+    if (!update) throw error;
+    state = { lockfile: { version: 2, sources: [] } as Lockfile };
+  }
+  const snapshots = remoteSources.map(({ name }) => captureImport(root, name));
+  const lockPath = join(normsDirectory(root), "lock.json");
+  const adapterPath = join(root, "AGENTS.md");
+  const previousLock = existsSync(lockPath) ? readFileSync(lockPath, "utf8") : undefined;
+  const previousAdapter = existsSync(adapterPath) ? readFileSync(adapterPath, "utf8") : undefined;
+
+  try {
+    const locked = update
+      ? remoteSources.map((source) => resolveGitSource(root, source))
+      : remoteSources.map((source) => lockedSource(source, state.lockfile));
+    if (!update) {
+      const removed = state.lockfile.sources.find(({ name }) => !remoteSources.some((source) => source.name === name));
+      if (removed) throw new Error(`Source ${removed.name} was removed from config. Run \`norms sync --update\`.`);
+    }
+    for (const source of remoteSources) {
+      materializeGitSource(root, source, locked.find(({ name }) => name === source.name)!);
+    }
+    const lockfile: Lockfile = { version: 2, sources: locked };
+    const norms = loadNorms(root);
+    writeFileSync(lockPath, `${JSON.stringify(lockfile, null, 2)}\n`);
+    writeFileSync(adapterPath, generateAgentAdapter(norms));
+    return {
+      summary: update ? "Norms updated." : "Norms synced.",
+      details: [
+        `${update ? "updated" : "restored"} ${remoteSources.length} import${remoteSources.length === 1 ? "" : "s"}`,
+        ...(state.migratedFrom ? [`migrated lockfile from version ${state.migratedFrom}`] : []),
+        `generated AGENTS.md with ${norms.length} norm${norms.length === 1 ? "" : "s"}`,
+      ],
+      data: { sources: config.sources.length, norms: norms.length, updated: update, lockfile },
+    };
+  } catch (error) {
+    for (const snapshot of snapshots) restoreImport(root, snapshot);
+    restoreFile(lockPath, previousLock);
+    restoreFile(adapterPath, previousAdapter);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Sync failed; previous imports and generated files were restored. ${message}`);
+  }
 }
 
 export function checkProject(root: string): CommandResult {
   const config = readConfig(root);
   const norms = loadNorms(root);
-  const lock = readLockfile(root);
+  const state = readLockfileState(root);
+  const lock = state.lockfile;
   const errors: string[] = [];
+  if (state.migratedFrom) errors.push(`lockfile version ${state.migratedFrom} needs migration; run \`norms sync\``);
   const remoteSources = config.sources.filter(({ git }) => git);
   for (const source of remoteSources) {
     const locked = lock.sources.find(({ name }) => name === source.name);
@@ -231,6 +279,23 @@ function writeIfMissing(path: string, content: string, root: string, created: st
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
   created.push(relativeName(root, path));
+}
+
+function lockedSource(source: { name: string; git?: string; ref?: string }, lockfile: Lockfile) {
+  const locked = lockfile.sources.find(({ name }) => name === source.name);
+  if (!locked) throw new Error(`Source ${source.name} is not locked. Run \`norms sync --update\`.`);
+  if (locked.git !== source.git || locked.ref !== (source.ref ?? "HEAD")) {
+    throw new Error(`Source ${source.name} changed in config. Run \`norms sync --update\`.`);
+  }
+  return locked;
+}
+
+function restoreFile(path: string, content: string | undefined): void {
+  if (content === undefined) {
+    if (existsSync(path)) rmSync(path);
+  } else {
+    writeFileSync(path, content);
+  }
 }
 
 function relativeName(root: string, path: string): string {

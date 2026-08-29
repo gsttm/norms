@@ -6,7 +6,7 @@ Goal: a new user can install Norms and complete a two-repository workflow withou
 
 - [x] Cross-platform CI, standalone binaries, checksums, attestations, and one-line install.
 - [x] Golden `init` → `propose` → `sync` → `check` → import end-to-end tests.
-- [ ] Lock-first offline sync, explicit updates, migrations, and recovery.
+- [x] Lock-first offline sync, explicit updates, migrations, and recovery.
 - [ ] Polished `init` and a diagnostic `doctor` command.
 
 ## Agent experience
@@ -26,4 +26,4 @@ Goal: a new user can install Norms and complete a two-repository workflow withou
 - [ ] Cross-repository lockfile update automation and rollout status.
 - [ ] Optional service for access, notifications, and aggregate status; Git remains canonical.
 
-Next: lock-first offline sync, then `init` and `doctor`.
+Next: polished `init` and a diagnostic `doctor` command.

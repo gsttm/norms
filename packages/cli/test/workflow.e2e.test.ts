@@ -40,9 +40,10 @@ describe("golden two-repository workflow", () => {
       `version: 1\nsources:\n  - name: repository\n    path: norms\n  - name: shared\n    git: ${JSON.stringify(source)}\n    ref: HEAD\n    path: .norms/norms\n`,
     );
 
-    expect(command(consumer, ["sync"])).toMatchObject({
+    expect(command(consumer, ["sync", "--update"])).toMatchObject({
       sources: 2,
       norms: 2,
+      updated: true,
       lockfile: { sources: [{ name: "shared", git: source, ref: "HEAD", commit }] },
     });
     expect(command(consumer, ["check"])).toEqual({ valid: true, norms: 2, imports: 1 });

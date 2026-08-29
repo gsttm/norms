@@ -33,8 +33,13 @@ export interface LockedSource {
 }
 
 export interface Lockfile {
-  version: 1;
+  version: 2;
   sources: LockedSource[];
+}
+
+export interface LockfileState {
+  lockfile: Lockfile;
+  migratedFrom?: 1;
 }
 
 const ID_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
@@ -72,11 +77,20 @@ export function readConfig(root: string): NormsConfig {
 }
 
 export function readLockfile(root: string): Lockfile {
+  return readLockfileState(root).lockfile;
+}
+
+export function readLockfileState(root: string): LockfileState {
   const path = join(normsDirectory(root), "lock.json");
-  if (!existsSync(path)) return { version: 1, sources: [] };
-  const value: unknown = JSON.parse(readFileSync(path, "utf8"));
-  if (!isRecord(value) || value.version !== 1 || !Array.isArray(value.sources)) {
-    throw new Error(".norms/lock.json is invalid. Run `norms sync`.");
+  if (!existsSync(path)) return { lockfile: { version: 2, sources: [] } };
+  let value: unknown;
+  try {
+    value = JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    throw new Error(".norms/lock.json is invalid. Restore it from Git or run `norms sync --update`.");
+  }
+  if (!isRecord(value) || ![1, 2].includes(value.version as number) || !Array.isArray(value.sources)) {
+    throw new Error(".norms/lock.json has an unsupported format. Restore it from Git or run `norms sync --update`.");
   }
   const sources = value.sources.map((source) => {
     if (
@@ -87,11 +101,17 @@ export function readLockfile(root: string): Lockfile {
       typeof source.commit !== "string" ||
       !/^[0-9a-f]{40}$/i.test(source.commit)
     ) {
-      throw new Error(".norms/lock.json contains an invalid source. Run `norms sync`.");
+      throw new Error(".norms/lock.json contains an invalid source. Restore it from Git or run `norms sync --update`.");
     }
     return source as unknown as LockedSource;
   });
-  return { version: 1, sources };
+  if (new Set(sources.map(({ name }) => name)).size !== sources.length) {
+    throw new Error(".norms/lock.json contains duplicate sources. Restore it from Git or run `norms sync --update`.");
+  }
+  return {
+    lockfile: { version: 2, sources },
+    migratedFrom: value.version === 1 ? 1 : undefined,
+  };
 }
 
 export function resolveSourceDirectory(root: string, source: SourceConfig): string {

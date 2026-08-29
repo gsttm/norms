@@ -14,7 +14,7 @@ A norm is Markdown with a stable `id` and optional `applies_to` globs. Its body 
 
 ## Sources
 
-`.norms/config.yaml` composes local and Git sources. `norms sync` materializes imports and pins their commits in `.norms/lock.json`.
+`.norms/config.yaml` composes local and Git sources. `norms sync --update` resolves Git refs into `.norms/lock.json`; plain `norms sync` restores those exact pins and works offline when their objects are local.
 
 Imported norms are changed in their source repository, then synced into consumers.
 

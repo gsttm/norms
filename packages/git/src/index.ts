@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import type { LockedSource, SourceConfig } from "@norms/core";
@@ -16,6 +16,12 @@ export interface GitState {
   dirty: boolean;
   ahead: number;
   behind: number;
+}
+
+export interface ImportSnapshot {
+  name: string;
+  existed: boolean;
+  commit?: string;
 }
 
 export function runGit(
@@ -66,27 +72,60 @@ export function gitState(root: string): GitState {
   return { label, dirty, ahead, behind };
 }
 
-export function syncGitSource(root: string, source: SourceConfig): LockedSource {
+export function resolveGitSource(root: string, source: SourceConfig): LockedSource {
   if (!source.git) throw new Error(`${source.name} is not a Git source.`);
-  const target = join(normsDirectory(root), "imports", source.name);
+  const target = importDirectory(root, source.name);
   const ref = source.ref ?? "HEAD";
-  mkdirSync(dirname(target), { recursive: true });
-
-  if (!existsSync(join(target, ".git"))) {
-    if (existsSync(target)) throw new Error(`Import target ${target} exists but is not a Git checkout.`);
-    runGit(root, ["clone", "--quiet", "--no-checkout", source.git, target]);
-  } else {
-    runGit(target, ["remote", "set-url", "origin", source.git]);
-  }
-
+  prepareImport(root, source);
   runGit(target, ["fetch", "--quiet", "--depth=1", "origin", ref]);
   const commit = runGit(target, ["rev-parse", "FETCH_HEAD"]);
-  runGit(target, ["checkout", "--quiet", "--detach", commit]);
   return { name: source.name, git: source.git, ref, commit };
 }
 
+export function materializeGitSource(root: string, source: SourceConfig, locked: LockedSource): void {
+  if (!source.git) throw new Error(`${source.name} is not a Git source.`);
+  const target = importDirectory(root, source.name);
+  prepareImport(root, source);
+  if (!runGit(target, ["rev-parse", "--verify", `${locked.commit}^{commit}`], { allowFailure: true })) {
+    runGit(target, ["fetch", "--quiet", "--depth=1", "origin", locked.commit]);
+  }
+  runGit(target, ["checkout", "--quiet", "--detach", locked.commit]);
+}
+
+export function captureImport(root: string, sourceName: string): ImportSnapshot {
+  const target = importDirectory(root, sourceName);
+  return { name: sourceName, existed: existsSync(target), commit: importedCommit(root, sourceName) };
+}
+
+export function restoreImport(root: string, snapshot: ImportSnapshot): void {
+  const target = importDirectory(root, snapshot.name);
+  if (!snapshot.existed) rmSync(target, { recursive: true, force: true });
+  else if (snapshot.commit && existsSync(join(target, ".git"))) {
+    runGit(target, ["checkout", "--quiet", "--detach", snapshot.commit]);
+  }
+}
+
 export function importedCommit(root: string, sourceName: string): string | undefined {
-  const target = join(normsDirectory(root), "imports", sourceName);
+  const target = importDirectory(root, sourceName);
   if (!existsSync(join(target, ".git"))) return undefined;
-  return runGit(target, ["rev-parse", "HEAD"]);
+  return runGit(target, ["rev-parse", "HEAD"], { allowFailure: true }) || undefined;
+}
+
+function prepareImport(root: string, source: SourceConfig): void {
+  if (!source.git) throw new Error(`${source.name} is not a Git source.`);
+  const target = importDirectory(root, source.name);
+  mkdirSync(dirname(target), { recursive: true });
+  if (!existsSync(target)) {
+    mkdirSync(target);
+    runGit(target, ["init", "--quiet"]);
+    runGit(target, ["remote", "add", "origin", source.git]);
+  } else if (!existsSync(join(target, ".git"))) {
+    throw new Error(`Import target ${target} exists but is not a Git checkout.`);
+  } else {
+    runGit(target, ["remote", "set-url", "origin", source.git]);
+  }
+}
+
+function importDirectory(root: string, sourceName: string): string {
+  return join(normsDirectory(root), "imports", sourceName);
 }
