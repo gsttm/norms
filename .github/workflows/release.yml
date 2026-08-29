@@ -22,7 +22,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.RELEASE_TAG }}
       - uses: oven-sh/setup-bun@v2
@@ -48,6 +48,7 @@ jobs:
         run: bun run package:release
       - run: sha256sum -c SHA256SUMS
         working-directory: dist/release
+      - run: chmod +x dist/release/norms-linux-x64
       - run: ./dist/release/norms-linux-x64 --version
       - name: Attest release assets
         uses: actions/attest@v4
