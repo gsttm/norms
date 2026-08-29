@@ -8,3 +8,7 @@
 
 - Implemented all required CLI commands, Git source pinning, generated adapters, GitHub/GitLab review, and VS Code visibility.
 - Passed 9 tests, strict type checking, both builds, native packaging, and repository-level CLI checks.
+
+## 2026-08-29 — Universal adapter preamble
+
+- Replaced project-specific guidance with concise Norms semantics for scope, identity, provenance, conflicts, proposals, and sync.

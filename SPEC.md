@@ -324,12 +324,13 @@ For Phase 0, prioritize `AGENTS.md`.
 `norms sync` should generate/update an `AGENTS.md` that:
 
 1. explains Norms,
-2. tells the agent how to obtain active norms,
-3. exposes the relevant rules,
-4. tells agents never to manually modify generated Norms output,
-5. explains how to propose a new norm,
-6. identifies the required TypeScript, Yoga, React, Ink, and Bun conventions,
-7. encourages terminal-first workflows consistent with Claude Code.
+2. explains scope, identity, provenance, and conflict handling,
+3. tells the agent how to obtain active norms,
+4. exposes the active norms,
+5. tells agents never to manually modify generated output,
+6. explains how to propose a new norm.
+
+The adapter preamble must be concise and repository-agnostic. Project-specific instructions, including implementation stacks, belong in active norms.
 
 Example meta-instruction:
 
@@ -341,8 +342,6 @@ Do not directly modify generated Norms files.
 Use:
 
 norms propose
-
-Unless a repository-specific norm says otherwise, implement Norms code in TypeScript using Bun. Use React and Ink for terminal interfaces and Yoga-compatible layout primitives for terminal layout.
 ```
 
 ---

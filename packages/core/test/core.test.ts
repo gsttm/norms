@@ -47,6 +47,9 @@ describe("norms core", () => {
     expect(generateAgentAdapter([norm])).toBe(first);
     expect(first).toContain("docs.short");
     expect(first).toContain("Do not edit");
+    expect(first).toContain("provenance, not priority");
+    expect(first).toContain("report the conflict");
+    expect(first).not.toMatch(/VISION\.md|TypeScript|Bun|React|Ink|Yoga/);
   });
 });
 
