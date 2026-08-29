@@ -6,7 +6,7 @@ Norms is a Git-native protocol and toolchain for persistent agent instructions. 
 
 Norms uses TypeScript, Bun, React, Ink, and Yoga-backed terminal layout. It avoids hosted policy state, bundled AI, and unnecessary machinery.
 
-## Quick install for development
+## Quick development setup
 
 ```sh
 git clone git@github.com:gsttm/norms.git
@@ -17,6 +17,8 @@ bun run build
 ./dist/norms.js --help
 ```
 
+In a development checkout, invoke Norms through `./dist/norms.js`. Building does not install a bare `norms` command.
+
 ## Basics
 
 Norm Markdown lives in `.norms/norms/`. `.norms/config.yaml` composes sources, `.norms/lock.json` pins imports, and `.norms/assets/` stores referenced files.
@@ -25,13 +27,13 @@ Norm Markdown lives in `.norms/norms/`. `.norms/config.yaml` composes sources, `
 
 | Command | Purpose |
 | --- | --- |
-| `norms init` | Initialize Norms and import existing agent instructions. |
-| `norms list` | List active norms and sources. |
-| `norms context [path]` | Return norms applicable to a path. |
-| `norms status` | Show sync and Git state. |
-| `norms propose` | Create or update a local norm. |
-| `norms sync` | Resolve sources, pin imports, and generate `AGENTS.md`. |
-| `norms check` | Validate config, norms, lockfile, and adapter. |
-| `norms review` | Commit, push, and open a GitHub or GitLab review. |
+| `./dist/norms.js init` | Initialize Norms and import existing agent instructions. |
+| `./dist/norms.js list` | List active norms and sources. |
+| `./dist/norms.js context [path]` | Return norms applicable to a path. |
+| `./dist/norms.js status` | Show sync and Git state. |
+| `./dist/norms.js propose` | Create or update a local norm. |
+| `./dist/norms.js sync` | Resolve sources, pin imports, and generate `AGENTS.md`. |
+| `./dist/norms.js check` | Validate config, norms, lockfile, and adapter. |
+| `./dist/norms.js review` | Commit, push, and open a GitHub or GitLab review. |
 
 Add `--json` for machine-readable output.
