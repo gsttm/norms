@@ -9,3 +9,4 @@
 | August 29, 2026 at 3:00 PM PST | Consistent progress table | Required timestamped table rows and allowed lossless reformatting for consistency. |
 | August 29, 2026 at 3:09 PM PST | Norms meta-guidance | Added selective proposal, canonical usage, and human-guided deconfliction rules. |
 | August 29, 2026 at 3:12 PM PST | Meta-norm safeguards | Added scope, compliance, exception, authoring, import ownership, and asset inspection rules. |
+| August 29, 2026 at 3:18 PM PST | README consolidation | Merged the vision with concise development setup and usage basics. |
