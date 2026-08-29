@@ -44,6 +44,18 @@ Co-author: AI_MODEL
 
 Use one or more numbered sub-feature lines. Replace the summary placeholders with concise text. Replace `CURRENT_AUTHOR` with the current human author's name, normally `git config user.name`. Replace `AI_MODEL` with the contributing model's identifier.
 
+## meta.author-quality
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Author precise norms
+
+Each norm must define one reusable behavior in clear, imperative language with the narrowest correct `applies_to` scope. Keep rationale and examples only when they remove ambiguity.
+
+Use a stable descriptive id. Avoid duplication, vague guidance, unnecessary structure, and rules that cannot be verified.
+
 ## meta.deconflict-norms
 
 Source: `repository`
@@ -55,6 +67,30 @@ Applies to: `**/*`
 Active norms must be mutually satisfiable. If norms contradict or create ambiguous requirements, identify the conflicting norm ids and behaviors, then ask the human for clarification before choosing a direction.
 
 After clarification, update the canonical norms into one unambiguous result, preserve their intent where possible, and run `norms sync` and `norms check`. Never resolve a conflict silently by source, order, or personal preference.
+
+## meta.handle-exceptions
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Handle exceptions explicitly
+
+Never ignore a norm silently. If an applicable norm cannot be followed, name its id, explain the reason and affected scope, and ask the human for an explicit exception before proceeding.
+
+Keep an approved exception limited to the stated task and scope. Do not change or generalize the canonical norm unless the human asks.
+
+## meta.inspect-assets
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Inspect referenced assets
+
+Inspect the exact referenced asset before applying a norm that depends on it. Do not infer asset contents from its name, path, description, or file type.
+
+If an asset is missing or unreadable, identify it and ask the human how to proceed. Preserve assets and their Git history.
 
 ## meta.norms-usage
 
@@ -79,6 +115,42 @@ Applies to: `**/*`
 After a human gives a suggestion that expresses a reusable convention likely to apply across the repository or future work, apply it to the current task and briefly ask whether it should become a norm.
 
 Ask selectively and at a natural pause. Do not ask for one-off preferences, task-specific corrections, or conventions already covered by an active norm.
+
+## meta.resolve-scope
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Re-evaluate scope
+
+Resolve active norms for every file in scope before changing it. Use `norms context [path] --json` when applicability is unclear or path-specific.
+
+Re-evaluate applicable norms whenever the task expands to new files or sources are synced. Do not assume that every file follows the same norms.
+
+## meta.respect-import-ownership
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Respect imported norm ownership
+
+Treat imported norms as read-only in a consuming repository. Never edit materialized files under `.norms/imports/`.
+
+Propose changes in the source repository, then run `norms sync` to update the pinned import. Do not create a local rule that silently contradicts an imported norm.
+
+## meta.verify-compliance
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Verify norm compliance
+
+Before completing work, check every changed file and action against all applicable norms. Fix violations before responding or clearly report any unresolved issue.
+
+Run `norms check` when Norms state or generated adapters may have changed. Do not claim completion without verifying compliance.
 
 ## process.feature-requests
 
