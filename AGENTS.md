@@ -44,6 +44,42 @@ Co-author: AI_MODEL
 
 Use one or more numbered sub-feature lines. Replace the summary placeholders with concise text. Replace `CURRENT_AUTHOR` with the current human author's name, normally `git config user.name`. Replace `AI_MODEL` with the contributing model's identifier.
 
+## meta.deconflict-norms
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Deconflict norms
+
+Active norms must be mutually satisfiable. If norms contradict or create ambiguous requirements, identify the conflicting norm ids and behaviors, then ask the human for clarification before choosing a direction.
+
+After clarification, update the canonical norms into one unambiguous result, preserve their intent where possible, and run `norms sync` and `norms check`. Never resolve a conflict silently by source, order, or personal preference.
+
+## meta.norms-usage
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Use norms
+
+Norms are Git-versioned repository instructions for agents. `.norms/` is canonical; generated adapters such as `AGENTS.md` are not. Active norms are resolved from configured sources.
+
+Follow every active norm whose `applies_to` pattern matches the files in scope. Treat `id` as stable identity and `source` as provenance, not priority. Use `norms context [path] --json` for scoped context, `norms propose` for reusable instructions, `norms sync` after norm changes, and `norms check` to validate state. Review norm changes as normal Git changes. Never edit generated adapters manually.
+
+## meta.propose-norms-selectively
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Propose reusable norms selectively
+
+After a human gives a suggestion that expresses a reusable convention likely to apply across the repository or future work, apply it to the current task and briefly ask whether it should become a norm.
+
+Ask selectively and at a natural pause. Do not ask for one-off preferences, task-specific corrections, or conventions already covered by an active norm.
+
 ## process.feature-requests
 
 Source: `repository`
