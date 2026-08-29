@@ -6,6 +6,20 @@ Norms is a Git-native protocol and toolchain for persistent agent instructions. 
 
 Norms uses TypeScript, Bun, React, Ink, and Yoga-backed terminal layout. It avoids hosted policy state, bundled AI, and unnecessary machinery.
 
+## Install
+
+On macOS or Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | sh
+```
+
+This installs the latest checksum-verified binary to `~/.local/bin`. Set `NORMS_INSTALL_DIR` or `NORMS_VERSION` on `sh` to override the directory or pin a version:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | NORMS_VERSION=v0.0.1 sh
+```
+
 ## Quick development setup
 
 ```sh
@@ -17,7 +31,7 @@ bun run build
 ./dist/norms.js --help
 ```
 
-In a development checkout, invoke Norms through `./dist/norms.js`. Building does not install a bare `norms` command.
+In a development checkout, invoke Norms through `./dist/norms.js`. Building does not install the released `norms` command.
 
 ## Basics
 
@@ -27,14 +41,14 @@ Norm Markdown lives in `.norms/norms/`. `.norms/config.yaml` composes sources, `
 
 | Command | Purpose |
 | --- | --- |
-| `./dist/norms.js init` | Initialize Norms and import existing agent instructions. |
-| `./dist/norms.js list` | List active norms and sources. |
-| `./dist/norms.js context [path]` | Return norms applicable to a path. |
-| `./dist/norms.js status` | Show sync and Git state. |
-| `./dist/norms.js propose` | Create or update a local norm. |
-| `./dist/norms.js sync` | Resolve sources, pin imports, and generate `AGENTS.md`. |
-| `./dist/norms.js check` | Validate config, norms, lockfile, and adapter. |
-| `./dist/norms.js review` | Commit, push, and open a GitHub or GitLab review. |
+| `norms init` | Initialize Norms and import existing agent instructions. |
+| `norms list` | List active norms and sources. |
+| `norms context [path]` | Return norms applicable to a path. |
+| `norms status` | Show sync and Git state. |
+| `norms propose` | Create or update a local norm. |
+| `norms sync` | Resolve sources, pin imports, and generate `AGENTS.md`. |
+| `norms check` | Validate config, norms, lockfile, and adapter. |
+| `norms review` | Commit, push, and open a GitHub or GitLab review. |
 
 Add `--json` for machine-readable output.
 
@@ -45,4 +59,6 @@ Add `--json` for machine-readable output.
 - [Repository format](docs/repository-format.md)
 - [Code structure](docs/code-structure.md)
 - [Development](docs/development.md)
+- [Releasing](docs/releasing.md)
+- [Roadmap](ROADMAP.md)
 - [Phase 0 specification](docs/specs/phase-0.md)

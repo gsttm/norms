@@ -15,6 +15,7 @@
       "@norms/providers": ["packages/providers/src/index.ts"],
       "@norms/ui": ["packages/ui/src/index.tsx"]
     },
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2023",

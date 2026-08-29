@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs";
 import { findRepositoryRoot } from "@norms/core";
 import { renderResult } from "@norms/ui";
+import manifest from "../../../package.json";
 import {
   checkProject,
   contextForProject,
@@ -40,7 +41,7 @@ async function main(): Promise<void> {
     return;
   }
   if (command === "--version" || command === "version") {
-    await output({ summary: "norms 0.0.1", details: [], data: { version: "0.0.1" } }, json);
+    await output({ summary: `norms ${manifest.version}`, details: [], data: { version: manifest.version } }, json);
     return;
   }
 

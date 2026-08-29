@@ -12,3 +12,4 @@
 | August 29, 2026 at 3:18 PM PST | README consolidation | Merged the vision with concise development setup and usage basics. |
 | August 29, 2026 at 3:28 PM PST | Development CLI usage | Clarified that development commands run through `./dist/norms.js`. |
 | August 29, 2026 at 3:39 PM PST | Documentation structure | Added current-state docs, moved the Phase 0 spec, and encoded documentation maintenance norms. |
+| August 29, 2026 at 3:58 PM PST | Releasable CLI | Added cross-platform CI, attested release binaries, checksums, and a tested one-line installer. |
