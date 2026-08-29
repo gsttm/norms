@@ -13,6 +13,8 @@ bun run build
 
 Use `bun run dev -- <args>` to run TypeScript directly. `bun run package` compiles the local executable; `bun run package:release` builds every release target and its checksum manifest.
 
+Use sibling `../norms_sandbox` as the sample consumer project for deployment and end-to-end tests. Inspect it before changing it.
+
 ## Outputs
 
 - `dist/norms.js`: bundled Bun CLI.

@@ -14,3 +14,4 @@
 | August 29, 2026 at 3:39 PM PST | Documentation structure | Added current-state docs, moved the Phase 0 spec, and encoded documentation maintenance norms. |
 | August 29, 2026 at 3:58 PM PST | Releasable CLI | Added cross-platform CI, attested release binaries, checksums, and a tested one-line installer. |
 | August 29, 2026 at 4:11 PM PST | Public release hardening | Verified anonymous installation and added exact-asset attestation, checksum, rerun, and public-install checks. |
+| August 29, 2026 at 4:16 PM PST | Sandbox testing norm | Designated `norms_sandbox` as the sample consumer project for deployment and end-to-end tests. |
