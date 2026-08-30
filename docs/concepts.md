@@ -12,7 +12,9 @@ A norm is Markdown with a stable `id` and optional `applies_to` globs. Its body 
 
 Identical definitions of one id compose with combined provenance. Different definitions of one id are a conflict.
 
-`source` records provenance, not priority. Contradictions require human clarification and a canonical deconfliction change.
+`source` records provenance, not priority. A norm may declare mutually exclusive ids with `conflicts_with`; `norms check` rejects declared pairs that coexist and emits a deterministic task for the calling agent. Missing targets remain valid for composition across sources. Semantic contradictions still require human clarification.
+
+`norms explain <path>` reports why every norm applies or does not apply and filters declared conflicts to that path.
 
 ## Sources
 

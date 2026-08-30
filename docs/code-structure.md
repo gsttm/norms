@@ -6,7 +6,7 @@ Norms uses TypeScript on Bun. React and Ink provide terminal UI; Ink uses Yoga f
 
 | Path | Responsibility |
 | --- | --- |
-| `packages/core/` | Norm parsing, source resolution, scope matching, context, and adapter generation. |
+| `packages/core/` | Norm parsing, source resolution, scope and conflict diagnostics, context, and adapters. |
 | `packages/cli/` | Command parsing and end-to-end operations. |
 | `packages/git/` | Git execution, import sync, and repository state. |
 | `packages/providers/` | GitHub and GitLab review adapters. |

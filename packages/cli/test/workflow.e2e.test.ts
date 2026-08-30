@@ -52,15 +52,31 @@ describe("golden two-repository workflow", () => {
     expect(typescript.norms.map(({ id }) => id)).toContain("repository.imported-agent-instructions");
     expect(typescript.norms.map(({ id }) => id)).toContain("shared.typescript");
     expect(typescript.norms.find(({ id }) => id === "meta.norms-usage")?.source).toBe("repository, shared");
+    const explanation = command(consumer, ["explain", "src/index.ts"]) as Explanation;
+    expect(explanation.applicable).toContain("shared.typescript");
+    expect(explanation.diagnostics.find(({ id }) => id === "shared.typescript")?.matchedScopes).toEqual(["src/**/*.ts"]);
     const readme = command(consumer, ["context", "README.md"]) as Context;
     expect(readme.norms.map(({ id }) => id)).toContain("repository.imported-agent-instructions");
     expect(readme.norms.map(({ id }) => id)).not.toContain("shared.typescript");
     expect(readFileSync(join(consumer, "AGENTS.md"), "utf8")).toContain("shared.typescript");
+
+    command(consumer, ["propose", "--id", "policy.one", "--conflicts-with", "policy.two", "--body", "Use policy one."]);
+    command(consumer, ["propose", "--id", "policy.two", "--body", "Use policy two."]);
+    command(consumer, ["sync"]);
+    const conflict = command(consumer, ["explain", "src/index.ts"]) as Explanation;
+    expect(conflict.conflicts[0]?.ids).toEqual(["policy.one", "policy.two"]);
+    expect(commandError(consumer, ["check"])).toContain("declared conflict policy.one and policy.two");
   }, 30_000);
 });
 
 interface Context {
   norms: Array<{ id: string; source: string }>;
+}
+
+interface Explanation {
+  applicable: string[];
+  diagnostics: Array<{ id: string; matchedScopes: string[] }>;
+  conflicts: Array<{ ids: [string, string] }>;
 }
 
 function repository(name: string): string {
@@ -74,13 +90,23 @@ function repository(name: string): string {
 }
 
 function command(root: string, args: string[]): unknown {
-  const result = Bun.spawnSync({
+  const result = runCommand(root, args);
+  if (result.exitCode !== 0) throw new Error(result.stderr.toString());
+  return JSON.parse(result.stdout.toString());
+}
+
+function commandError(root: string, args: string[]): string {
+  const result = runCommand(root, args);
+  expect(result.exitCode).not.toBe(0);
+  return result.stderr.toString();
+}
+
+function runCommand(root: string, args: string[]) {
+  return Bun.spawnSync({
     cmd: [process.execPath, cli, ...args, "--json"],
     cwd: root,
     env: { ...process.env, NO_COLOR: "1", NORMS_CACHE_DIR: `${root}-cache` },
     stdout: "pipe",
     stderr: "pipe",
   });
-  if (result.exitCode !== 0) throw new Error(result.stderr.toString());
-  return JSON.parse(result.stdout.toString());
 }

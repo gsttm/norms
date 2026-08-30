@@ -7,8 +7,9 @@ In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` 
 | `norms init [--no-import]` | Create `.norms/`, seed cached starter meta-norms, optionally import existing instructions, and generate `AGENTS.md`. |
 | `norms list` | List active norms, scopes, and sources. |
 | `norms context [path]` | Return all active norms or only those matching a path. |
+| `norms explain <path>` | Diagnose every scope match and declared conflict for a path. |
 | `norms status` | Report adapter, import, and Git state. |
-| `norms propose --id ID` | Write a norm from `--body`, `--body-file`, or stdin. Repeat `--scope`; use `--force` to replace. |
+| `norms propose --id ID` | Write a norm from `--body`, `--body-file`, or stdin. Repeat `--scope` or `--conflicts-with`; use `--force` to replace. |
 | `norms sync` | Restore locked imports and generate `AGENTS.md`; fetch only when a pinned commit is missing locally. |
 | `norms sync --update` | Fetch configured refs, advance pins, and generate `AGENTS.md`. |
 | `norms check` | Validate configuration, norms, imports, lockfile, and adapter. |
@@ -24,6 +25,8 @@ In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` 
 ./dist/norms.js sync
 ./dist/norms.js check
 ```
+
+Use `norms explain src/index.ts --json` to inspect matched and unmatched scopes, applicable norm ids, missing conflict targets, and path-relevant conflict tasks.
 
 Run `sync --update` after adding, removing, or changing a Git source. Plain `sync` preserves pins, migrates version-1 lockfiles, and restores the previous valid state if resolution fails.
 

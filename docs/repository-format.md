@@ -22,6 +22,8 @@
 id: backend.repository-access
 applies_to:
   - "src/controllers/**"
+conflicts_with:
+  - backend.direct-database-access
 ---
 
 # Use repositories
@@ -29,7 +31,7 @@ applies_to:
 Controllers access persistence through repositories.
 ```
 
-Ids are stable lowercase words separated by `.`, `-`, or `_`. Omit `applies_to` to use `**/*`.
+Ids are stable lowercase words separated by `.`, `-`, or `_`. Omit `applies_to` to use `**/*`. `conflicts_with` lists norm ids that cannot coexist; one-sided declarations are sufficient.
 
 ## Sources
 

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { runGit } from "@norms/git";
 import { loadNorms, readLockfile, serializeNorm, serializeStarterPack } from "@norms/core";
-import { checkProject, initProject, proposeNorm, syncProject } from "../src/commands";
+import { checkProject, explainProject, initProject, proposeNorm, syncProject } from "../src/commands";
 
 const roots: string[] = [];
 
@@ -50,6 +50,32 @@ describe("CLI commands", () => {
     syncProject(root);
     expect(checkProject(root).data).toEqual({ valid: true, norms: 10, imports: 0 });
     expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toContain("backend.repositories");
+  });
+
+  test("explain reports scope decisions and declared conflicts", () => {
+    const root = fixture();
+    mkdirSync(join(root, ".norms/norms"), { recursive: true });
+    writeFileSync(join(root, ".norms/config.yaml"), "version: 1\nsources:\n  - name: repository\n    path: norms\n");
+    writeFileSync(join(root, ".norms/norms/backend.md"), serializeNorm("backend.errors", ["src/**"], "Use typed errors.", ["company.errors"]));
+    writeFileSync(join(root, ".norms/norms/company.md"), serializeNorm("company.errors", ["src/**/*.ts"], "Use error codes."));
+    writeFileSync(join(root, ".norms/norms/docs.md"), serializeNorm("docs.short", ["docs/**"], "Keep docs short."));
+    syncProject(root);
+
+    const result = explainProject(root, "src/index.ts");
+    expect(result.summary).toBe("2 of 3 norms apply to src/index.ts.");
+    expect(result.data).toMatchObject({
+      applicable: ["backend.errors", "company.errors"],
+      conflicts: [{ ids: ["backend.errors", "company.errors"] }],
+    });
+    expect(result.details).toContain("skips docs.short: docs/**");
+    expect(() => checkProject(root)).toThrow("declared conflict backend.errors and company.errors");
+
+    rmSync(join(root, ".norms/norms/company.md"));
+    syncProject(root);
+    expect(checkProject(root).data).toEqual({ valid: true, norms: 2, imports: 0 });
+    expect(explainProject(root, "src/index.ts").data).toMatchObject({
+      missingTargets: [{ normId: "backend.errors", targetId: "company.errors" }],
+    });
   });
 
   test("sync composes and pins a Git source", () => {

@@ -29,9 +29,31 @@ export interface NormsConfig {
 export interface Norm {
   id: string;
   appliesTo: string[];
+  conflictsWith: string[];
   body: string;
   filePath: string;
   source: string;
+}
+
+export interface ScopeDiagnostic {
+  id: string;
+  source: string;
+  filePath: string;
+  applies: boolean;
+  matchedScopes: string[];
+  unmatchedScopes: string[];
+  conflictsWith: string[];
+}
+
+export interface NormConflict {
+  ids: [string, string];
+  declaredBy: string[];
+  task: string;
+}
+
+export interface ConflictReport {
+  conflicts: NormConflict[];
+  missingTargets: Array<{ normId: string; targetId: string }>;
 }
 
 export interface LockedSource {
@@ -201,7 +223,11 @@ export function loadNorms(root: string): Norm[] {
   for (const norm of norms) {
     const previous = seen.get(norm.id);
     if (!previous) seen.set(norm.id, norm);
-    else if (previous.body === norm.body && arraysEqual(previous.appliesTo, norm.appliesTo)) {
+    else if (
+      previous.body === norm.body
+      && arraysEqual(previous.appliesTo, norm.appliesTo)
+      && arraysEqual(previous.conflictsWith, norm.conflictsWith)
+    ) {
       previous.source = `${previous.source}, ${norm.source}`;
     } else {
       throw new Error(`Conflicting norm id ${norm.id}: ${previous.filePath} and ${norm.filePath}.`);
@@ -223,19 +249,29 @@ export function parseNorm(markdown: string, filePath: string, source: string): N
   if (!Array.isArray(appliesTo) || appliesTo.some((scope) => typeof scope !== "string" || !scope)) {
     throw new Error(`${filePath} applies_to must be a string or list of strings.`);
   }
+  const rawConflicts = metadata.conflicts_with ?? [];
+  const conflictsWith = typeof rawConflicts === "string" ? [rawConflicts] : rawConflicts;
+  if (!Array.isArray(conflictsWith) || conflictsWith.some((id) => typeof id !== "string" || !ID_PATTERN.test(id))) {
+    throw new Error(`${filePath} conflicts_with must contain stable norm ids.`);
+  }
+  if (conflictsWith.includes(metadata.id)) throw new Error(`${filePath} cannot conflict with itself.`);
+  if (new Set(conflictsWith).size !== conflictsWith.length) throw new Error(`${filePath} has duplicate conflicts_with ids.`);
 
   const body = match[2].trim();
   if (!body) throw new Error(`${filePath} must have a body.`);
-  return { id: metadata.id, appliesTo: appliesTo as string[], body, filePath, source };
+  return { id: metadata.id, appliesTo: appliesTo as string[], conflictsWith: conflictsWith as string[], body, filePath, source };
 }
 
-export function serializeNorm(id: string, appliesTo: string[], body: string): string {
+export function serializeNorm(id: string, appliesTo: string[], body: string, conflictsWith: string[] = []): string {
   validateNormId(id);
   if (appliesTo.length === 0 || appliesTo.some((scope) => !scope)) {
     throw new Error("A norm needs at least one non-empty scope.");
   }
+  for (const conflict of conflictsWith) validateNormId(conflict);
+  if (conflictsWith.includes(id)) throw new Error("A norm cannot conflict with itself.");
+  if (new Set(conflictsWith).size !== conflictsWith.length) throw new Error("Conflict ids must be unique.");
   if (!body.trim()) throw new Error("A norm body cannot be empty.");
-  const metadata = YAML.stringify({ id, applies_to: appliesTo }, { lineWidth: 0 }).trim();
+  const metadata = YAML.stringify({ id, applies_to: appliesTo, ...(conflictsWith.length ? { conflicts_with: conflictsWith } : {}) }, { lineWidth: 0 }).trim();
   return `---\n${metadata}\n---\n\n${body.trim()}\n`;
 }
 
@@ -254,18 +290,61 @@ export function normalizeRepositoryPath(root: string, filePath: string): string 
 }
 
 export function normApplies(norm: Norm, filePath: string): boolean {
-  return norm.appliesTo.some((pattern) => minimatch(filePath, pattern, { dot: true }));
+  return matchingScopes(norm, filePath).length > 0;
 }
 
 export function normsForPath(norms: Norm[], filePath?: string): Norm[] {
   return filePath ? norms.filter((norm) => normApplies(norm, filePath)) : norms;
 }
 
+export function diagnoseScopes(norms: Norm[], filePath: string): ScopeDiagnostic[] {
+  return norms.map((norm) => {
+    const matchedScopes = matchingScopes(norm, filePath);
+    return {
+      id: norm.id,
+      source: norm.source,
+      filePath: norm.filePath,
+      applies: matchedScopes.length > 0,
+      matchedScopes,
+      unmatchedScopes: norm.appliesTo.filter((scope) => !matchedScopes.includes(scope)),
+      conflictsWith: norm.conflictsWith,
+    };
+  });
+}
+
+export function inspectConflicts(norms: Norm[], filePath?: string): ConflictReport {
+  const byId = new Map(norms.map((norm) => [norm.id, norm]));
+  const pairs = new Map<string, { ids: [string, string]; declaredBy: string[] }>();
+  const missingTargets: ConflictReport["missingTargets"] = [];
+  for (const norm of norms) {
+    if (filePath && !normApplies(norm, filePath)) continue;
+    for (const targetId of norm.conflictsWith) {
+      const target = byId.get(targetId);
+      if (!target) {
+        missingTargets.push({ normId: norm.id, targetId });
+        continue;
+      }
+      if (filePath && !normApplies(target, filePath)) continue;
+      const ids = [norm.id, target.id].sort() as [string, string];
+      const key = ids.join("\0");
+      const pair = pairs.get(key) ?? { ids, declaredBy: [] };
+      pair.declaredBy.push(norm.id);
+      pairs.set(key, pair);
+    }
+  }
+  const conflicts = [...pairs.values()].sort((a, b) => a.ids.join().localeCompare(b.ids.join())).map((pair) => ({
+    ...pair,
+    declaredBy: pair.declaredBy.sort(),
+    task: `Resolve ${pair.ids[0]} and ${pair.ids[1]} into one unambiguous canonical policy. Preserve both intents where possible, explain required behavior changes, update the canonical norm files, then run \`norms sync\` and \`norms check\`.`,
+  }));
+  return { conflicts, missingTargets: missingTargets.sort((a, b) => `${a.normId}\0${a.targetId}`.localeCompare(`${b.normId}\0${b.targetId}`)) };
+}
+
 export function renderContext(norms: Norm[], filePath?: string): string {
   const title = filePath ? `# Active Norms for ${filePath}` : "# Active Norms";
   const sections = norms.map(
     (norm) =>
-      `## ${norm.id}\n\nSource: ${norm.source}\n\nApplies to: ${norm.appliesTo.join(", ")}\n\n${norm.body}`,
+      `## ${norm.id}\n\nSource: ${norm.source}\n\nApplies to: ${norm.appliesTo.join(", ")}${norm.conflictsWith.length ? `\n\nConflicts with: ${norm.conflictsWith.join(", ")}` : ""}\n\n${norm.body}`,
   );
   return `${title}\n\n${sections.join("\n\n")}\n`;
 }
@@ -273,7 +352,7 @@ export function renderContext(norms: Norm[], filePath?: string): string {
 export function generateAgentAdapter(norms: Norm[]): string {
   const sections = norms.map(
     (norm) =>
-      `## ${norm.id}\n\nSource: \`${norm.source}\`\n\nApplies to: ${norm.appliesTo.map((scope) => `\`${scope}\``).join(", ")}\n\n${norm.body}`,
+      `## ${norm.id}\n\nSource: \`${norm.source}\`\n\nApplies to: ${norm.appliesTo.map((scope) => `\`${scope}\``).join(", ")}${norm.conflictsWith.length ? `\n\nConflicts with: ${norm.conflictsWith.map((id) => `\`${id}\``).join(", ")}` : ""}\n\n${norm.body}`,
   );
   return `${GENERATED_MARKER}
 # Agent Instructions
@@ -342,4 +421,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function arraysEqual(left: string[], right: string[]): boolean {
   return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function matchingScopes(norm: Norm, filePath: string): string[] {
+  return norm.appliesTo.filter((pattern) => minimatch(filePath, pattern, { dot: true }));
 }

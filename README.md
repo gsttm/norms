@@ -46,6 +46,7 @@ Norm Markdown lives in `.norms/norms/`. `.norms/config.yaml` composes sources, `
 | `norms init` | Initialize Norms, starter meta-norms, and existing agent instructions. |
 | `norms list` | List active norms and sources. |
 | `norms context [path]` | Return norms applicable to a path. |
+| `norms explain <path>` | Explain scope matches and declared conflicts. |
 | `norms status` | Show sync and Git state. |
 | `norms propose` | Create or update a local norm. |
 | `norms sync` | Restore pinned imports offline and generate `AGENTS.md`. |

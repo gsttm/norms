@@ -6,6 +6,7 @@ import manifest from "../../../package.json";
 import {
   checkProject,
   contextForProject,
+  explainProject,
   initProject,
   listProjectNorms,
   proposeNorm,
@@ -21,6 +22,7 @@ Commands:
   init                  Initialize starter norms and AGENTS.md
   list                  List active norms
   context [path]        Print applicable norms
+  explain <path>        Diagnose scopes and declared conflicts
   status                Show sync and Git state
   propose               Write a local norm proposal
   sync [--update]       Restore pins or explicitly update them
@@ -58,6 +60,10 @@ async function main(): Promise<void> {
     case "context":
       result = contextForProject(root, args.positionals[0]);
       break;
+    case "explain":
+      if (!args.positionals[0]) throw new Error("Usage: norms explain <path>.");
+      result = explainProject(root, args.positionals[0]);
+      break;
     case "status":
       result = statusForProject(root);
       break;
@@ -72,6 +78,7 @@ async function main(): Promise<void> {
       result = proposeNorm(root, {
         id,
         scopes: args.values.get("scope") ?? ["**/*"],
+        conflictsWith: args.values.get("conflicts-with"),
         body,
         force: args.flags.has("force"),
       });

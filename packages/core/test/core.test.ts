@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   generateAgentAdapter,
+  diagnoseScopes,
+  inspectConflicts,
   loadNorms,
   normApplies,
   parseNorm,
@@ -60,6 +62,30 @@ describe("norms core", () => {
     expect(first).toContain("provenance, not priority");
     expect(first).toContain("report the conflict");
     expect(first).not.toMatch(/VISION\.md|TypeScript|Bun|React|Ink|Yoga/);
+  });
+
+  test("diagnoses scopes and declared conflicts", () => {
+    const backend = parseNorm(
+      serializeNorm("backend.errors", ["src/**"], "Use typed errors.", ["company.errors"]),
+      "backend.md",
+      "repository",
+    );
+    const company = parseNorm(serializeNorm("company.errors", ["src/**/*.ts"], "Use error codes."), "company.md", "shared");
+    const docs = parseNorm(serializeNorm("docs.short", ["docs/**"], "Keep docs short."), "docs.md", "repository");
+    const norms = [backend, company, docs];
+    const diagnostics = diagnoseScopes(norms, "src/index.ts");
+    expect(diagnostics.find(({ id }) => id === "backend.errors")).toMatchObject({ applies: true, matchedScopes: ["src/**"] });
+    expect(diagnostics.find(({ id }) => id === "docs.short")).toMatchObject({ applies: false, unmatchedScopes: ["docs/**"] });
+    expect(inspectConflicts(norms, "src/index.ts").conflicts[0]).toMatchObject({
+      ids: ["backend.errors", "company.errors"],
+      declaredBy: ["backend.errors"],
+    });
+    expect(inspectConflicts(norms, "docs/readme.md").conflicts).toHaveLength(0);
+  });
+
+  test("reports missing conflict targets", () => {
+    const norm = parseNorm(serializeNorm("backend.errors", ["**/*"], "Use typed errors.", ["missing.errors"]), "backend.md", "repository");
+    expect(inspectConflicts([norm]).missingTargets).toEqual([{ normId: "backend.errors", targetId: "missing.errors" }]);
   });
 
   test("packages every canonical meta-norm", () => {

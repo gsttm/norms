@@ -11,7 +11,7 @@ Goal: a new user can install Norms and complete a two-repository workflow withou
 
 ## Agent experience
 
-- [ ] Conflict declarations, scope diagnostics, and `norms explain`.
+- [x] Conflict declarations, scope diagnostics, and `norms explain`.
 - [ ] Optional MCP resources and explicit mutation tools.
 - [ ] Generated adapters for Claude, Cursor, and Copilot.
 - [ ] Agent-evaluated lint context without an embedded model.
@@ -26,4 +26,4 @@ Goal: a new user can install Norms and complete a two-repository workflow withou
 - [ ] Cross-repository lockfile update automation and rollout status.
 - [ ] Optional service for access, notifications, and aggregate status; Git remains canonical.
 
-Next: conflict declarations, scope diagnostics, and `norms explain`.
+Next: `norms lint` with agent-evaluated context and no embedded model.

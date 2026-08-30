@@ -9,8 +9,10 @@ import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 import {
   STARTER_PACK,
+  diagnoseScopes,
   generateAgentAdapter,
   isGeneratedAdapter,
+  inspectConflicts,
   loadNorms,
   normPathForId,
   normalizeRepositoryPath,
@@ -135,6 +137,25 @@ export function contextForProject(root: string, filePath?: string): CommandResul
   };
 }
 
+export function explainProject(root: string, filePath: string): CommandResult {
+  const normalized = normalizeRepositoryPath(root, filePath);
+  const norms = loadNorms(root);
+  const diagnostics = diagnoseScopes(norms, normalized);
+  const report = inspectConflicts(norms, normalized);
+  const applicable = diagnostics.filter(({ applies }) => applies).map(({ id }) => id);
+  return {
+    summary: `${applicable.length} of ${norms.length} norms apply to ${normalized}.`,
+    details: [
+      ...diagnostics.map((diagnostic) => diagnostic.applies
+        ? `applies ${diagnostic.id}: ${diagnostic.matchedScopes.join(", ")}`
+        : `skips ${diagnostic.id}: ${diagnostic.unmatchedScopes.join(", ")}`),
+      ...report.missingTargets.map(({ normId, targetId }) => `missing conflict target: ${normId} -> ${targetId}`),
+      ...report.conflicts.flatMap((conflict) => [`conflict: ${conflict.ids.join(" <> ")}`, conflict.task]),
+    ],
+    data: { file: normalized, applicable, diagnostics, ...report },
+  };
+}
+
 export function statusForProject(root: string): CommandResult {
   const config = readConfig(root);
   const norms = loadNorms(root);
@@ -144,6 +165,7 @@ export function statusForProject(root: string): CommandResult {
   const adapterSynced =
     existsSync(adapterPath) && readFileSync(adapterPath, "utf8") === generateAgentAdapter(norms);
   const remoteSources = config.sources.filter((source) => source.git);
+  const conflictReport = inspectConflicts(norms);
   const lockMatches = remoteSources.length === lock.sources.length && remoteSources.every((source) => {
     const locked = lock.sources.find(({ name }) => name === source.name);
     return locked?.git === source.git && locked?.ref === (source.ref ?? "HEAD");
@@ -154,7 +176,7 @@ export function statusForProject(root: string): CommandResult {
       return locked && importedCommit(root, source.name) === locked.commit;
     });
   const state = gitState(root);
-  const synced = adapterSynced && importsSynced && !lockState.migratedFrom;
+  const synced = adapterSynced && importsSynced && !lockState.migratedFrom && !conflictReport.conflicts.length;
   return {
     summary: synced ? "Norms are synced." : "Norms need sync.",
     details: [
@@ -164,15 +186,17 @@ export function statusForProject(root: string): CommandResult {
       `imports: ${importsSynced ? "synced" : "stale"}`,
       `config: ${lockMatches ? "matches lock" : "needs update"}`,
       `lock: ${lockState.migratedFrom ? "migration needed" : "current"}`,
+      `norm conflicts: ${conflictReport.conflicts.length}`,
+      `unresolved conflict targets: ${conflictReport.missingTargets.length}`,
       `git: ${state.label}`,
     ],
-    data: { synced, adapterSynced, importsSynced, lockMigration: lockState.migratedFrom, norms: norms.length, sources: config.sources.length, git: state },
+    data: { synced, adapterSynced, importsSynced, lockMigration: lockState.migratedFrom, norms: norms.length, sources: config.sources.length, conflicts: conflictReport, git: state },
   };
 }
 
 export function proposeNorm(
   root: string,
-  input: { id: string; scopes: string[]; body: string; force?: boolean },
+  input: { id: string; scopes: string[]; body: string; conflictsWith?: string[]; force?: boolean },
 ): CommandResult {
   const source = readConfig(root).sources.find(({ git }) => !git);
   if (!source) throw new Error("No local source accepts proposals. Add one to .norms/config.yaml.");
@@ -182,7 +206,7 @@ export function proposeNorm(
     throw new Error(`${relativeName(root, target)} exists. Pass --force to replace it.`);
   }
   mkdirSync(dirname(target), { recursive: true });
-  writeFileSync(target, serializeNorm(input.id, input.scopes.length ? input.scopes : ["**/*"], input.body));
+  writeFileSync(target, serializeNorm(input.id, input.scopes.length ? input.scopes : ["**/*"], input.body, input.conflictsWith));
   return {
     summary: `Proposed ${input.id}.`,
     details: [`wrote ${relativeName(root, target)}`, "Run `norms sync` to refresh AGENTS.md."],
@@ -245,6 +269,10 @@ export function checkProject(root: string): CommandResult {
   const state = readLockfileState(root);
   const lock = state.lockfile;
   const errors: string[] = [];
+  const conflictReport = inspectConflicts(norms);
+  for (const conflict of conflictReport.conflicts) {
+    errors.push(`declared conflict ${conflict.ids.join(" and ")}: ${conflict.task}`);
+  }
   if (state.migratedFrom) errors.push(`lockfile version ${state.migratedFrom} needs migration; run \`norms sync\``);
   const remoteSources = config.sources.filter(({ git }) => git);
   for (const source of remoteSources) {
@@ -266,7 +294,13 @@ export function checkProject(root: string): CommandResult {
   if (errors.length) throw new Error(`Norms check failed:\n- ${errors.join("\n- ")}`);
   return {
     summary: "Norms check passed.",
-    details: [`${norms.length} norms valid`, `${remoteSources.length} imports pinned`, "AGENTS.md current"],
+    details: [
+      `${norms.length} norms valid`,
+      "no active declared conflicts",
+      ...(conflictReport.missingTargets.length ? [`${conflictReport.missingTargets.length} unresolved conflict target${conflictReport.missingTargets.length === 1 ? "" : "s"}`] : []),
+      `${remoteSources.length} imports pinned`,
+      "AGENTS.md current",
+    ],
     data: { valid: true, norms: norms.length, imports: remoteSources.length },
   };
 }

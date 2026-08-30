@@ -19,3 +19,4 @@
 | August 29, 2026 at 4:27 PM PST | Reproducible sync | Added offline pin restoration, explicit updates, lock migration, and rollback recovery. |
 | August 29, 2026 at 4:43 PM PST | Starter-aware init | Added checksum-protected starter meta-norm caching and idempotent project seeding. |
 | August 29, 2026 at 4:50 PM PST | Concise init output | Collapsed initialization scaffolding into one human-facing line while preserving JSON detail. |
+| August 29, 2026 at 5:15 PM PST | Explain and conflicts | Added deterministic conflict declarations, scope diagnostics, and `norms explain`. |
