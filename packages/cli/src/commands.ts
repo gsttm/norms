@@ -16,6 +16,7 @@ import {
   inspectConflicts,
   loadNorms,
   normPathForId,
+  normalizeLineEndings,
   normalizeRepositoryPath,
   normsDirectory,
   normsForPath,
@@ -73,7 +74,7 @@ export function initProject(
   ]) {
     if (!existsSync(path)) {
       mkdirSync(path, { recursive: true });
-      created.push(relativeName(root, path));
+      created.push(normalizeRepositoryPath(root, path));
     }
   }
 
@@ -95,7 +96,7 @@ export function initProject(
     if (existsSync(target)) continue;
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, norm.content);
-    seeded.push(relativeName(root, target));
+    seeded.push(normalizeRepositoryPath(root, target));
   }
 
   const importedAdapters: string[] = [];
@@ -107,13 +108,13 @@ export function initProject(
       if (isGeneratedAdapter(existing)) continue;
       const importedPath = join(directory, "norms", normPathForId(adapter.id));
       const imported = serializeNorm(adapter.id, ["**/*"], existing);
-      if (existsSync(importedPath) && readFileSync(importedPath, "utf8") !== imported) {
-        throw new Error(`${adapter.path} differs from its existing imported norm at ${relativeName(root, importedPath)}.`);
+      if (existsSync(importedPath) && !fileMatches(importedPath, imported)) {
+        throw new Error(`${adapter.path} differs from its existing imported norm at ${normalizeRepositoryPath(root, importedPath)}.`);
       }
       if (!existsSync(importedPath)) {
         mkdirSync(dirname(importedPath), { recursive: true });
         writeFileSync(importedPath, imported);
-        created.push(relativeName(root, importedPath));
+        created.push(normalizeRepositoryPath(root, importedPath));
       }
       importedAdapters.push(adapter.path);
     }
@@ -206,9 +207,7 @@ export function statusForProject(root: string): CommandResult {
   const lockState = readLockfileState(root);
   const lock = lockState.lockfile;
   const adapters = adaptersForProject(root, norms);
-  const staleAdapters = adapters.filter(({ filePath, content }) =>
-    !existsSync(filePath) || readFileSync(filePath, "utf8") !== content
-  ).map(({ path }) => path);
+  const staleAdapters = adapters.filter(({ filePath, content }) => !fileMatches(filePath, content)).map(({ path }) => path);
   const adapterSynced = staleAdapters.length === 0;
   const remoteSources = config.sources.filter((source) => source.git);
   const conflictReport = inspectConflicts(norms);
@@ -253,14 +252,14 @@ export function proposeNorm(
   const base = resolveSourceDirectory(root, source);
   const target = join(base, normPathForId(input.id));
   if (existsSync(target) && !input.force) {
-    throw new Error(`${relativeName(root, target)} exists. Pass --force to replace it.`);
+    throw new Error(`${normalizeRepositoryPath(root, target)} exists. Pass --force to replace it.`);
   }
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, serializeNorm(input.id, input.scopes.length ? input.scopes : ["**/*"], input.body, input.conflictsWith));
   return {
     summary: `Proposed ${input.id}.`,
-    details: [`wrote ${relativeName(root, target)}`, "Run `norms sync` to refresh generated adapters."],
-    data: { id: input.id, path: relativeName(root, target), source: source.name },
+    details: [`wrote ${normalizeRepositoryPath(root, target)}`, "Run `norms sync` to refresh generated adapters."],
+    data: { id: input.id, path: normalizeRepositoryPath(root, target), source: source.name },
   };
 }
 
@@ -354,7 +353,7 @@ export function checkProject(root: string): CommandResult {
   }
   const adapters = adaptersForProject(root, norms);
   for (const adapter of adapters) {
-    if (!existsSync(adapter.filePath) || readFileSync(adapter.filePath, "utf8") !== adapter.content) {
+    if (!fileMatches(adapter.filePath, adapter.content)) {
       errors.push(`${adapter.path} is stale; run \`norms sync\``);
     }
   }
@@ -405,7 +404,7 @@ function writeIfMissing(path: string, content: string, root: string, created: st
   if (existsSync(path)) return;
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
-  created.push(relativeName(root, path));
+  created.push(normalizeRepositoryPath(root, path));
 }
 
 function adaptersForProject(root: string, norms: Norm[]) {
@@ -444,8 +443,8 @@ function restoreFile(path: string, content: string | undefined): void {
   }
 }
 
-function relativeName(root: string, path: string): string {
-  return path.slice(root.length + 1);
+function fileMatches(path: string, content: string): boolean {
+  return existsSync(path) && normalizeLineEndings(readFileSync(path, "utf8")) === normalizeLineEndings(content);
 }
 
 function slug(value: string): string {

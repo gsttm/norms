@@ -88,6 +88,11 @@ describe("CLI commands", () => {
     expect(readFileSync(join(root, "CLAUDE.md"), "utf8")).toBe("# Handwritten\n");
 
     initProject(root, true, cache(root));
+    for (const path of ["AGENTS.md", "CLAUDE.md", ".cursor/rules/norms.mdc", ".github/copilot-instructions.md"]) {
+      const adapter = join(root, path);
+      writeFileSync(adapter, readFileSync(adapter, "utf8").replaceAll("\n", "\r\n"));
+    }
+    expect(checkProject(root).data).toEqual({ valid: true, norms: 10, imports: 0 });
     writeFileSync(join(root, ".cursor/rules/norms.mdc"), "stale\n");
     expect(() => checkProject(root)).toThrow(".cursor/rules/norms.mdc is stale");
   });

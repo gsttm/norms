@@ -1,6 +1,6 @@
 # CLI
 
-In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` to any command for machine-readable output.
+In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` for machine-readable output. Repository paths always use `/`; adapter checks ignore line-ending differences.
 
 | Command | Usage |
 | --- | --- |

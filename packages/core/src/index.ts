@@ -89,6 +89,10 @@ export interface StarterPack {
   norms: Array<{ path: string; content: string }>;
 }
 
+export function normalizeLineEndings(value: string): string {
+  return value.replace(/\r\n?/g, "\n");
+}
+
 export const STARTER_PACK: StarterPack = {
   version: 1,
   norms: ([
@@ -101,7 +105,7 @@ export const STARTER_PACK: StarterPack = {
     ["meta/resolve-scope.md", resolveScope],
     ["meta/respect-import-ownership.md", respectImportOwnership],
     ["meta/verify-compliance.md", verifyCompliance],
-  ] satisfies Array<[string, string]>).map(([path, content]) => ({ path, content })),
+  ] satisfies Array<[string, string]>).map(([path, content]) => ({ path, content: normalizeLineEndings(content) })),
 };
 
 const ID_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
@@ -161,7 +165,7 @@ export function readStarterPack(content: string): StarterPack {
     }
     const parsed = parseNorm(norm.content, norm.path, "starter");
     if (!parsed.id.startsWith("meta.")) throw new Error(`Starter norm ${parsed.id} must use the meta namespace.`);
-    return { path: norm.path, content: norm.content };
+    return { path: norm.path, content: normalizeLineEndings(norm.content) };
   });
   if (new Set(norms.map(({ path }) => path)).size !== norms.length) {
     throw new Error("Starter meta-norm cache contains duplicate paths. Reinstall Norms.");
@@ -170,7 +174,8 @@ export function readStarterPack(content: string): StarterPack {
 }
 
 export function serializeStarterPack(pack = STARTER_PACK): string {
-  return `${JSON.stringify(pack, null, 2)}\n`;
+  const normalized = { ...pack, norms: pack.norms.map((norm) => ({ ...norm, content: normalizeLineEndings(norm.content) })) };
+  return `${JSON.stringify(normalized, null, 2)}\n`;
 }
 
 export function readLockfileState(root: string): LockfileState {
@@ -248,7 +253,7 @@ export function loadNorms(root: string): Norm[] {
 }
 
 export function parseNorm(markdown: string, filePath: string, source: string): Norm {
-  const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/);
+  const match = normalizeLineEndings(markdown).match(/^---\n([\s\S]*?)\n---(?:\n|$)([\s\S]*)$/);
   if (!match) throw new Error(`${filePath} must start with YAML front matter.`);
 
   const metadata: unknown = YAML.parse(match[1]!);
@@ -281,9 +286,10 @@ export function serializeNorm(id: string, appliesTo: string[], body: string, con
   for (const conflict of conflictsWith) validateNormId(conflict);
   if (conflictsWith.includes(id)) throw new Error("A norm cannot conflict with itself.");
   if (new Set(conflictsWith).size !== conflictsWith.length) throw new Error("Conflict ids must be unique.");
-  if (!body.trim()) throw new Error("A norm body cannot be empty.");
+  const normalizedBody = normalizeLineEndings(body).trim();
+  if (!normalizedBody) throw new Error("A norm body cannot be empty.");
   const metadata = YAML.stringify({ id, applies_to: appliesTo, ...(conflictsWith.length ? { conflicts_with: conflictsWith } : {}) }, { lineWidth: 0 }).trim();
-  return `---\n${metadata}\n---\n\n${body.trim()}\n`;
+  return `---\n${metadata}\n---\n\n${normalizedBody}\n`;
 }
 
 export function normPathForId(id: string): string {
@@ -293,7 +299,7 @@ export function normPathForId(id: string): string {
 
 export function normalizeRepositoryPath(root: string, filePath: string): string {
   const value = isAbsolute(filePath) ? relative(root, filePath) : filePath;
-  const normalized = value.split(sep).join("/").replace(/^\.\//, "");
+  const normalized = value.replaceAll("\\", "/").replace(/^\.\//, "");
   if (normalized === ".." || normalized.startsWith("../")) {
     throw new Error(`${filePath} is outside the repository.`);
   }
@@ -365,7 +371,7 @@ export function generateAgentAdapter(norms: Norm[]): string {
     (norm) =>
       `## ${norm.id}\n\nSource: \`${norm.source}\`\n\nApplies to: ${norm.appliesTo.map((scope) => `\`${scope}\``).join(", ")}${norm.conflictsWith.length ? `\n\nConflicts with: ${norm.conflictsWith.map((id) => `\`${id}\``).join(", ")}` : ""}\n\n${norm.body}`,
   );
-  return `${GENERATED_MARKER}
+  return normalizeLineEndings(`${GENERATED_MARKER}
 # Agent Instructions
 
 Norms are versioned instructions for agents. The active norms below are canonical for this repository.
@@ -377,7 +383,7 @@ Do not edit this generated file. Change canonical norms in \`.norms/\`, use \`no
 # Active Norms
 
 ${sections.length ? sections.join("\n\n") : "No active norms."}
-`;
+`);
 }
 
 export function generateAdapters(norms: Norm[]): GeneratedAdapter[] {
