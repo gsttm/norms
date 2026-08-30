@@ -30,7 +30,9 @@ import {
 } from "@norms/core";
 import {
   captureImport,
+  changedFiles,
   currentBranch,
+  diffForFiles,
   gitState,
   importedCommit,
   materializeGitSource,
@@ -153,6 +155,35 @@ export function explainProject(root: string, filePath: string): CommandResult {
       ...report.conflicts.flatMap((conflict) => [`conflict: ${conflict.ids.join(" <> ")}`, conflict.task]),
     ],
     data: { file: normalized, applicable, diagnostics, ...report },
+  };
+}
+
+export function lintProject(root: string, filePaths: string[] = []): CommandResult {
+  const files = [...new Set((filePaths.length ? filePaths.map((path) => normalizeRepositoryPath(root, path)) : changedFiles(root)))].sort();
+  if (!files.length) throw new Error("No changed files to lint. Pass one or more paths explicitly.");
+  const norms = loadNorms(root);
+  const contexts = files.map((path) => {
+    const applicable = normsForPath(norms, path);
+    return { path, normIds: applicable.map(({ id }) => id), ...inspectConflicts(norms, path) };
+  });
+  const activeIds = new Set(contexts.flatMap(({ normIds }) => normIds));
+  const activeNorms = norms.filter(({ id }) => activeIds.has(id));
+  const diff = diffForFiles(root, files);
+  const task = "Read the listed files from the repository and use the diff as change context. Evaluate each file against every associated norm. Report violations with the file, norm id, concrete evidence, and minimal correction. Do not invent violations or change norms to excuse code. If fixes are authorized, apply them, then run `norms check`.";
+  return {
+    summary: `Lint context prepared for ${files.length} file${files.length === 1 ? "" : "s"}.`,
+    details: [
+      task,
+      "",
+      ...contexts.map(({ path, normIds }) => `${path}: ${normIds.length ? normIds.join(", ") : "no applicable norms"}`),
+      "",
+      ...renderContext(activeNorms).trimEnd().split("\n"),
+      "",
+      "# Repository Diff",
+      "",
+      diff || "No tracked diff; read the listed files from the repository.",
+    ],
+    data: { version: 1, task, files: contexts, norms: activeNorms, diff },
   };
 }
 

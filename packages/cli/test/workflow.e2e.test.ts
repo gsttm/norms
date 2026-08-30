@@ -55,6 +55,9 @@ describe("golden two-repository workflow", () => {
     const explanation = command(consumer, ["explain", "src/index.ts"]) as Explanation;
     expect(explanation.applicable).toContain("shared.typescript");
     expect(explanation.diagnostics.find(({ id }) => id === "shared.typescript")?.matchedScopes).toEqual(["src/**/*.ts"]);
+    const lint = command(consumer, ["lint", "src/index.ts"]) as LintContext;
+    expect(lint.files[0]).toMatchObject({ path: "src/index.ts" });
+    expect(lint.norms.map(({ id }) => id)).toContain("shared.typescript");
     const readme = command(consumer, ["context", "README.md"]) as Context;
     expect(readme.norms.map(({ id }) => id)).toContain("repository.imported-agent-instructions");
     expect(readme.norms.map(({ id }) => id)).not.toContain("shared.typescript");
@@ -77,6 +80,11 @@ interface Explanation {
   applicable: string[];
   diagnostics: Array<{ id: string; matchedScopes: string[] }>;
   conflicts: Array<{ ids: [string, string] }>;
+}
+
+interface LintContext {
+  files: Array<{ path: string }>;
+  norms: Array<{ id: string }>;
 }
 
 function repository(name: string): string {

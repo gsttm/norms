@@ -111,6 +111,26 @@ export function importedCommit(root: string, sourceName: string): string | undef
   return runGit(target, ["rev-parse", "HEAD"], { allowFailure: true }) || undefined;
 }
 
+export function changedFiles(root: string): string[] {
+  const commands = [
+    ["diff", "--name-only", "--diff-filter=ACMRD", "--cached"],
+    ["diff", "--name-only", "--diff-filter=ACMRD"],
+    ["ls-files", "--others", "--exclude-standard"],
+  ];
+  const files = commands.flatMap((args) => runGit(root, args).split("\n").filter(Boolean));
+  return [...new Set(files)].sort();
+}
+
+export function diffForFiles(root: string, files: string[]): string {
+  if (!files.length) return "";
+  const diff = runGit(root, ["diff", "--no-ext-diff", "--unified=3", "HEAD", "--", ...files], { allowFailure: true });
+  if (diff) return diff;
+  return [
+    runGit(root, ["diff", "--no-ext-diff", "--unified=3", "--cached", "--", ...files], { allowFailure: true }),
+    runGit(root, ["diff", "--no-ext-diff", "--unified=3", "--", ...files], { allowFailure: true }),
+  ].filter(Boolean).join("\n");
+}
+
 function prepareImport(root: string, source: SourceConfig): void {
   if (!source.git) throw new Error(`${source.name} is not a Git source.`);
   const target = importDirectory(root, source.name);

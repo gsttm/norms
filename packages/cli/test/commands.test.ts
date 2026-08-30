@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { runGit } from "@norms/git";
 import { loadNorms, readLockfile, serializeNorm, serializeStarterPack } from "@norms/core";
-import { checkProject, explainProject, initProject, proposeNorm, syncProject } from "../src/commands";
+import { checkProject, explainProject, initProject, lintProject, proposeNorm, syncProject } from "../src/commands";
 
 const roots: string[] = [];
 
@@ -76,6 +76,28 @@ describe("CLI commands", () => {
     expect(explainProject(root, "src/index.ts").data).toMatchObject({
       missingTargets: [{ normId: "backend.errors", targetId: "company.errors" }],
     });
+  });
+
+  test("lint packages changed files, applicable norms, and diff context", () => {
+    const root = fixture();
+    mkdirSync(join(root, ".norms/norms"), { recursive: true });
+    mkdirSync(join(root, "src"));
+    writeFileSync(join(root, ".norms/config.yaml"), "version: 1\nsources:\n  - name: repository\n    path: norms\n");
+    writeFileSync(join(root, ".norms/norms/typescript.md"), serializeNorm("coding.typescript", ["src/**/*.ts"], "Use strict TypeScript."));
+    writeFileSync(join(root, "src/index.ts"), "export const value = 1;\n");
+    syncProject(root);
+    commit(root, "Initialize lint fixture");
+    writeFileSync(join(root, "src/index.ts"), "export const value = 2;\n");
+
+    const result = lintProject(root);
+    expect(result.summary).toBe("Lint context prepared for 1 file.");
+    expect(result.data).toMatchObject({
+      version: 1,
+      files: [{ path: "src/index.ts", normIds: ["coding.typescript"] }],
+      norms: [{ id: "coding.typescript" }],
+    });
+    expect((result.data as { diff: string }).diff).toContain("+export const value = 2;");
+    expect(lintProject(root, ["README.md"]).data).toMatchObject({ files: [{ path: "README.md", normIds: [] }] });
   });
 
   test("sync composes and pins a Git source", () => {

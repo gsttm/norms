@@ -8,6 +8,7 @@ In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` 
 | `norms list` | List active norms, scopes, and sources. |
 | `norms context [path]` | Return all active norms or only those matching a path. |
 | `norms explain <path>` | Diagnose every scope match and declared conflict for a path. |
+| `norms lint [path...]` | Emit a deterministic agent-evaluated lint package for changed or explicit files. |
 | `norms status` | Report adapter, import, and Git state. |
 | `norms propose --id ID` | Write a norm from `--body`, `--body-file`, or stdin. Repeat `--scope` or `--conflicts-with`; use `--force` to replace. |
 | `norms sync` | Restore locked imports and generate `AGENTS.md`; fetch only when a pinned commit is missing locally. |
@@ -27,6 +28,8 @@ In a development checkout, replace `norms` with `./dist/norms.js`. Add `--json` 
 ```
 
 Use `norms explain src/index.ts --json` to inspect matched and unmatched scopes, applicable norm ids, missing conflict targets, and path-relevant conflict tasks.
+
+`norms lint` uses staged, unstaged, and untracked files by default. Its package contains a fixed evaluation task, file-to-norm mappings, conflicts, unique norm text, and the tracked diff. Pass paths to lint clean or selected files. Norms does not evaluate or modify code itself.
 
 Run `sync --update` after adding, removing, or changing a Git source. Plain `sync` preserves pins, migrates version-1 lockfiles, and restores the previous valid state if resolution fails.
 

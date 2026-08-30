@@ -8,6 +8,7 @@ import {
   contextForProject,
   explainProject,
   initProject,
+  lintProject,
   listProjectNorms,
   proposeNorm,
   reviewProject,
@@ -23,6 +24,7 @@ Commands:
   list                  List active norms
   context [path]        Print applicable norms
   explain <path>        Diagnose scopes and declared conflicts
+  lint [path...]        Emit agent-evaluated lint context
   status                Show sync and Git state
   propose               Write a local norm proposal
   sync [--update]       Restore pins or explicitly update them
@@ -63,6 +65,9 @@ async function main(): Promise<void> {
     case "explain":
       if (!args.positionals[0]) throw new Error("Usage: norms explain <path>.");
       result = explainProject(root, args.positionals[0]);
+      break;
+    case "lint":
+      result = lintProject(root, args.positionals);
       break;
     case "status":
       result = statusForProject(root);

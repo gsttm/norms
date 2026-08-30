@@ -27,3 +27,7 @@ Imported norms are changed in their source repository, then synced into consumer
 `norms sync` generates `AGENTS.md` with universal usage guidance and active norms. Agents use `norms context [path] --json` for path-specific context and `norms propose` for reusable new instructions.
 
 Norm changes use normal Git review and history.
+
+## Linting
+
+`norms lint` packages changed files, applicable norms, conflicts, and Git diff context for the calling agent. It is deterministic and read-only; Norms contains no model and makes no compliance judgment.

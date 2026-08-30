@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { gitState, runGit } from "../src/index";
+import { changedFiles, diffForFiles, gitState, runGit } from "../src/index";
 
 const roots: string[] = [];
 
@@ -28,5 +28,21 @@ describe("Git state", () => {
 
     writeFileSync(join(root, "AGENTS.md"), "changed\n");
     expect(gitState(root).label).toBe("locally modified");
+  });
+
+  test("collects changed files and tracked diffs", () => {
+    const root = mkdtempSync(join(tmpdir(), "norms-git-"));
+    roots.push(root);
+    runGit(root, ["init", "--quiet"]);
+    runGit(root, ["config", "user.name", "Norms Test"]);
+    runGit(root, ["config", "user.email", "norms@example.test"]);
+    writeFileSync(join(root, "tracked.ts"), "export const value = 1;\n");
+    runGit(root, ["add", "tracked.ts"]);
+    runGit(root, ["commit", "--quiet", "-m", "Initialize"]);
+    writeFileSync(join(root, "tracked.ts"), "export const value = 2;\n");
+    writeFileSync(join(root, "untracked.ts"), "export const value = 3;\n");
+
+    expect(changedFiles(root)).toEqual(["tracked.ts", "untracked.ts"]);
+    expect(diffForFiles(root, ["tracked.ts", "untracked.ts"])).toContain("+export const value = 2;");
   });
 });

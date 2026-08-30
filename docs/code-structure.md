@@ -8,7 +8,7 @@ Norms uses TypeScript on Bun. React and Ink provide terminal UI; Ink uses Yoga f
 | --- | --- |
 | `packages/core/` | Norm parsing, source resolution, scope and conflict diagnostics, context, and adapters. |
 | `packages/cli/` | Command parsing and end-to-end operations. |
-| `packages/git/` | Git execution, import sync, and repository state. |
+| `packages/git/` | Git execution, import sync, repository state, and change context. |
 | `packages/providers/` | GitHub and GitLab review adapters. |
 | `packages/ui/` | Shared React/Ink terminal output. |
 | `packages/vscode/` | Active-norm and Git-state visibility in VS Code. |
