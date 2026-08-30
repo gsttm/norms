@@ -7,8 +7,8 @@ try {
   New-Item -ItemType Directory -Force $release | Out-Null
   $architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
   $asset = if ($architecture -eq "Arm64") { "norms-windows-arm64.exe" } else { "norms-windows-x64.exe" }
-  Set-Content -NoNewline (Join-Path $release $asset) "norms test"
-  Set-Content -NoNewline (Join-Path $release "norms-meta-norms.json") '{"version":1,"norms":[]}'
+  [IO.File]::WriteAllText((Join-Path $release $asset), "norms test")
+  [IO.File]::WriteAllText((Join-Path $release "norms-meta-norms.json"), '{"version":1,"norms":[]}')
   $lines = foreach ($name in @($asset, "norms-meta-norms.json")) {
     "$((Get-FileHash (Join-Path $release $name) -Algorithm SHA256).Hash.ToLowerInvariant())  $name"
   }
