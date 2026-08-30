@@ -24,3 +24,4 @@
 | August 29, 2026 at 5:30 PM PST | Multi-agent adapters | Generated equivalent AGENTS, Claude, Cursor, and Copilot instructions with safe import, sync, check, and review handling. |
 | August 29, 2026 at 6:01 PM PST | Application palette | Added the shared terminal and VS Code extension color palette. |
 | August 29, 2026 at 6:41 PM PST | VS Code extension specification | Defined accessible norm browsing, focus grouping, and safe norm creation. |
+| August 29, 2026 at 6:50 PM PST | VS Code panel scope | Limited panel actions to Sync and New Norm after initialization, or Init Norms before it, and excluded current-file applicability. |

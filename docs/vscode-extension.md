@@ -37,6 +37,15 @@ Norms
 - Open local canonical files from the detail view; identify imported norms as read-only.
 - Never communicate state through color alone.
 
+## Panel actions
+
+An initialized repository shows exactly two buttons:
+
+- **Sync** runs `norms sync` and refreshes the panel.
+- **New Norm** opens the authoring flow below.
+
+A repository without `.norms/config.yaml` shows only **Init Norms**. It runs `norms init`, refreshes the panel, then replaces itself with **Sync** and **New Norm**. No other panel buttons are in the initial scope.
+
 ## New norm
 
 Expose `Norms: New Norm` from the panel and Command Palette. Collect:
@@ -54,16 +63,17 @@ The primary action creates the norm, runs `norms sync`, and refreshes the panel.
 ## States
 
 - No repository: explain that a folder must be opened.
-- Not initialized: explain Norms and offer `norms init`.
+- Not initialized: explain Norms and show only **Init Norms**.
 - Loading: retain the previous tree and show progress.
-- Invalid state: show the exact file and error with retry and open-file actions.
+- Invalid state: show the exact file and error.
 - Untrusted workspace: allow inspection; disable writes and command execution.
 
-Refresh after workspace-folder, active-editor, and `.norms/**` changes. Debounce repeated events.
+Refresh after workspace-folder and `.norms/**` changes. Debounce repeated events.
 
 ## Acceptance
 
 - Every active norm appears exactly once under a deterministic focus.
+- Initialized repositories show only **Sync** and **New Norm**; uninitialized repositories show only **Init Norms**.
 - Browsing and creation work without a mouse.
 - Multi-root repositories remain isolated.
 - A created norm passes core validation and appears in every generated adapter after sync.
@@ -73,5 +83,6 @@ Refresh after workspace-folder, active-editor, and `.norms/**` changes. Debounce
 ## Non-goals
 
 - Embedded AI or semantic compliance judgments.
+- Current-file norm applicability.
 - A custom Git review or collaboration system.
 - Editing generated adapters.
