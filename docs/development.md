@@ -9,6 +9,7 @@ bun test
 bun run test:vscode
 bun run test:e2e
 bun run test:installer
+pwsh -File scripts/test-installer.ps1
 bun run build
 ./dist/norms.js --help
 ```
@@ -33,5 +34,6 @@ Generated outputs and `node_modules/` are ignored. Run `bun run build` after CLI
 - `bun test`: core, CLI, Git, and provider tests.
 - `bun run test:vscode`: VS Code extension-host tests; downloads a cached test runtime on first use.
 - `bun run test:e2e`: two-repository CLI workflow.
-- `bun run test:installer`: installer selection and checksum tests.
+- `bun run test:installer`: macOS and Linux installer selection and checksum tests.
+- `pwsh -File scripts/test-installer.ps1`: Windows installer selection and checksum tests.
 - `./dist/norms.js check --json`: repository Norms validation.

@@ -46,6 +46,13 @@ On macOS or Linux:
 curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | sh
 ```
 
+On Windows, run PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/gsttm/norms/main/install.ps1 | iex
+```
+
+Both installers verify release checksums and optionally install the VS Code extension.
 
 ## Quick development setup
 

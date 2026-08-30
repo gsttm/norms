@@ -20,7 +20,7 @@ Norms uses TypeScript on Bun. React and Ink provide terminal UI; Ink uses Yoga f
 - `packages/cli/src/index.tsx`: CLI entry point.
 - `packages/core/src/index.ts`: domain API.
 - `packages/vscode/src/extension.ts`: VS Code integration and workflows.
-- `install.sh`: checksum-verifying macOS and Linux installer.
+- `install.sh` and `install.ps1`: checksum-verifying macOS, Linux, and Windows installers.
 - `.norms/norms/meta/`: canonical source for the embedded and cached starter pack.
 - `scripts/`: release build and installer verification.
 - `.github/workflows/`: cross-platform CI and tagged releases.

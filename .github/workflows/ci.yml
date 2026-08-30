@@ -27,3 +27,6 @@ jobs:
         run: xvfb-run -a bun run test:vscode
       - if: runner.os != 'Windows'
         run: bun run test:installer
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/test-installer.ps1
