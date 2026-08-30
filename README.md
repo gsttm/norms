@@ -82,6 +82,10 @@ Norm Markdown lives in `.norms/norms/` and `.norms/assets/` stores referenced fi
 
 Add `--json` for machine-readable output.
 
+## Current adapters
+
+Norms currently outputs only `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/norms.mdc`, and `.github/copilot-instructions.md`.
+
 ## Documentation
 
 - [Concepts](docs/concepts.md)
