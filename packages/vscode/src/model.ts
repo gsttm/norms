@@ -19,6 +19,7 @@ export function groupNorms(norms: Norm[], filter = ""): FocusGroup[] {
   const groups = new Map<string, Norm[]>();
   for (const norm of visible) {
     const focus = norm.id.split(".")[0];
+    if (!focus) continue;
     groups.set(focus, [...(groups.get(focus) ?? []), norm]);
   }
   return [...groups.entries()]

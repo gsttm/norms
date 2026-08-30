@@ -1,11 +1,7 @@
 # Norms
 
-## Problem
-As more work is delegated to AI agents, coders and teams need a way to define how those agents should behave. AGENTS.md is fine, but doesn't scale well across repos, teams, and coding languages. Norms is a simple attempt to make it really easy for you and your agents to create norms that persist.
-
 ## Summary
-Norms is a toolchain for storing repo-specific agent instructions. It keeps track of agent norms in Markdown files in a local .norms/ folder, then auto-populates them into an AGENTS.md. 
-
+Norms stores Git-versioned agent instructions in `.norms/`, resolves them by scope and source, and generates adapters for common coding agents.
 
 ## Install
 

@@ -121,7 +121,7 @@ function parseArgs(args: string[]): ParsedArgs {
   const values = new Map<string, string[]>();
   const booleanOptions = new Set(["force", "no-import", "update"]);
   for (let index = 0; index < args.length; index++) {
-    const value = args[index];
+    const value = args[index]!;
     if (!value.startsWith("--")) {
       positionals.push(value);
       continue;

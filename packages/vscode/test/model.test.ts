@@ -26,7 +26,7 @@ describe("VS Code norm model", () => {
   test("provides complete non-color accessibility labels", () => {
     expect(repositoryAccessibility("app", "3 norms")).toBe("app, 3 norms");
     expect(focusAccessibility("style", 2)).toBe("style, 2 norms");
-    expect(normAccessibility(norms[0], true)).toBe("style.zebra, source repository, read-only");
+    expect(normAccessibility(norms[0]!, true)).toBe("style.zebra, source repository, read-only");
   });
 });
 

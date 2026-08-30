@@ -33,8 +33,8 @@ describe("norms core", () => {
     );
     const norms = loadNorms(root);
     expect(norms.map(({ id }) => id)).toEqual(["coding.typescript"]);
-    expect(normApplies(norms[0], "src/index.ts")).toBe(true);
-    expect(normApplies(norms[0], "README.md")).toBe(false);
+    expect(normApplies(norms[0]!, "src/index.ts")).toBe(true);
+    expect(normApplies(norms[0]!, "README.md")).toBe(false);
   });
 
   test("rejects duplicate ids", () => {

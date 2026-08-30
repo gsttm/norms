@@ -91,7 +91,7 @@ export interface StarterPack {
 
 export const STARTER_PACK: StarterPack = {
   version: 1,
-  norms: [
+  norms: ([
     ["meta/author-quality.md", authorQuality],
     ["meta/deconflict-norms.md", deconflictNorms],
     ["meta/handle-exceptions.md", handleExceptions],
@@ -101,7 +101,7 @@ export const STARTER_PACK: StarterPack = {
     ["meta/resolve-scope.md", resolveScope],
     ["meta/respect-import-ownership.md", respectImportOwnership],
     ["meta/verify-compliance.md", verifyCompliance],
-  ].map(([path, content]) => ({ path, content })),
+  ] satisfies Array<[string, string]>).map(([path, content]) => ({ path, content })),
 };
 
 const ID_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
@@ -196,7 +196,7 @@ export function readLockfileState(root: string): LockfileState {
     ) {
       throw new Error(".norms/lock.json contains an invalid source. Restore it from Git or run `norms sync --update`.");
     }
-    return source as unknown as LockedSource;
+    return { name: source.name, git: source.git, ref: source.ref, commit: source.commit };
   });
   if (new Set(sources.map(({ name }) => name)).size !== sources.length) {
     throw new Error(".norms/lock.json contains duplicate sources. Restore it from Git or run `norms sync --update`.");
@@ -251,7 +251,7 @@ export function parseNorm(markdown: string, filePath: string, source: string): N
   const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/);
   if (!match) throw new Error(`${filePath} must start with YAML front matter.`);
 
-  const metadata: unknown = YAML.parse(match[1]);
+  const metadata: unknown = YAML.parse(match[1]!);
   if (!isRecord(metadata) || typeof metadata.id !== "string" || !ID_PATTERN.test(metadata.id)) {
     throw new Error(`${filePath} must define a lowercase stable id.`);
   }
@@ -268,7 +268,7 @@ export function parseNorm(markdown: string, filePath: string, source: string): N
   if (conflictsWith.includes(metadata.id)) throw new Error(`${filePath} cannot conflict with itself.`);
   if (new Set(conflictsWith).size !== conflictsWith.length) throw new Error(`${filePath} has duplicate conflicts_with ids.`);
 
-  const body = match[2].trim();
+  const body = match[2]!.trim();
   if (!body) throw new Error(`${filePath} must have a body.`);
   return { id: metadata.id, appliesTo: appliesTo as string[], conflictsWith: conflictsWith as string[], body, filePath, source };
 }

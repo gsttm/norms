@@ -29,7 +29,7 @@ Generated outputs and `node_modules/` are ignored. Run `bun run build` after CLI
 
 ## Verification
 
-- `bun run check`: strict TypeScript validation.
+- `bun run check`: strict TypeScript hygiene and repository Norms validation.
 - `bun test`: core, CLI, Git, and provider tests.
 - `bun run test:vscode`: VS Code extension-host tests; downloads a cached test runtime on first use.
 - `bun run test:e2e`: two-repository CLI workflow.
