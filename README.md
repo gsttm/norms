@@ -1,10 +1,11 @@
 # Norms
 
+## Problem
+As more work is delegated to AI agents, coders and teams need a way to define how those agents should behave. AGENTS.md is fine, but doesn't scale well across repos, teams, and coding languages. Norms is an attempt to make it really easy for you and your agents to create norms that persist across repos and teams.
+
 ## Summary
 
-Norms is a Git-native protocol and toolchain for persistent agent instructions. Git owns policy, history, review, and provenance; Norms resolves context while the user's agent reasons.
-
-Norms uses TypeScript, Bun, React, Ink, and Yoga-backed terminal layout. It avoids hosted policy state, bundled AI, and unnecessary machinery.
+Norms is a Git-native protocol and toolchain for persistent agent instructions. It keeps track of what norms you want your AI agents to follow so that everyone working in the codebase operates from the same playbook.
 
 ## Install
 
