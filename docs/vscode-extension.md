@@ -1,6 +1,6 @@
 # VS Code extension specification
 
-Status: initial
+Status: implemented; publication pending
 
 ## Goal
 
@@ -31,7 +31,7 @@ Norms
 
 - Sort groups and norms alphabetically.
 - Make groups collapsible and preserve expansion, selection, and scroll position across refreshes.
-- Provide text filtering without changing canonical state.
+- Provide text filtering through `Norms: Filter Norms` without changing canonical state.
 - Show norm id and source in each row.
 - On selection, show body, `applies_to`, `conflicts_with`, source, and canonical file path.
 - Open local canonical files from the detail view; identify imported norms as read-only.
@@ -45,6 +45,8 @@ An initialized repository shows exactly two buttons:
 - **New Norm** opens the authoring flow below.
 
 A repository without `.norms/config.yaml` shows only **Init Norms**. It runs `norms init`, refreshes the panel, then replaces itself with **Sync** and **New Norm**. No other panel buttons are in the initial scope.
+
+The filter remains available from the Command Palette, not as a panel button.
 
 ## New norm
 

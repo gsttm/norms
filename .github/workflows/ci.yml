@@ -23,5 +23,7 @@ jobs:
       - run: bun run check
       - run: bun test
       - run: bun run build
+      - if: runner.os == 'Linux'
+        run: xvfb-run -a bun run test:vscode
       - if: runner.os != 'Windows'
         run: bun run test:installer

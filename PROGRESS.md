@@ -25,3 +25,4 @@
 | August 29, 2026 at 6:01 PM PST | Application palette | Added the shared terminal and VS Code extension color palette. |
 | August 29, 2026 at 6:41 PM PST | VS Code extension specification | Defined accessible norm browsing, focus grouping, and safe norm creation. |
 | August 29, 2026 at 6:50 PM PST | VS Code panel scope | Limited panel actions to Sync and New Norm after initialization, or Init Norms before it, and excluded current-file applicability. |
+| August 29, 2026 at 7:08 PM PST | Production VS Code extension | Implemented accessible multi-root browsing, exact state-based actions, safe norm authoring, refresh behavior, and extension-host coverage. |

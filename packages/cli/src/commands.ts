@@ -242,10 +242,14 @@ export function statusForProject(root: string): CommandResult {
 
 export function proposeNorm(
   root: string,
-  input: { id: string; scopes: string[]; body: string; conflictsWith?: string[]; force?: boolean },
-): CommandResult {
-  const source = readConfig(root).sources.find(({ git }) => !git);
-  if (!source) throw new Error("No local source accepts proposals. Add one to .norms/config.yaml.");
+  input: { id: string; scopes: string[]; body: string; conflictsWith?: string[]; force?: boolean; source?: string },
+): CommandResult<{ id: string; path: string; source: string }> {
+  const source = readConfig(root).sources.find(({ name, git }) => !git && (!input.source || name === input.source));
+  if (!source) {
+    throw new Error(input.source
+      ? `Writable source ${input.source} is not configured.`
+      : "No local source accepts proposals. Add one to .norms/config.yaml.");
+  }
   const base = resolveSourceDirectory(root, source);
   const target = join(base, normPathForId(input.id));
   if (existsSync(target) && !input.force) {

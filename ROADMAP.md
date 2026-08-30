@@ -17,7 +17,8 @@ Goal: a new user can install Norms and complete a two-repository workflow withou
 
 ## Review and IDE
 
-- [ ] [Production VS Code extension](docs/vscode-extension.md) with multi-root tests and publishing.
+- [x] [Production VS Code extension](docs/vscode-extension.md) with multi-root tests.
+- [ ] Publish the VS Code extension.
 - [ ] Review reuse, previews, default-branch detection, and recovery.
 
 ## Teams
@@ -25,4 +26,4 @@ Goal: a new user can install Norms and complete a two-repository workflow withou
 - [ ] Cross-repository lockfile update automation and rollout status.
 - [ ] Optional service for access, notifications, and aggregate status; Git remains canonical.
 
-Next: production VS Code extension with multi-root tests and publishing.
+Next: publish the VS Code extension.

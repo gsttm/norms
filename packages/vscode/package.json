@@ -1,28 +1,71 @@
 {
   "name": "norms-vscode",
   "displayName": "Norms",
-  "description": "Shows active Git-backed norms and their scope.",
+  "description": "Browse and create Git-backed agent norms.",
   "version": "0.0.1",
   "publisher": "norms",
   "engines": {
     "vscode": "^1.103.0"
   },
   "categories": ["Other"],
+  "keywords": ["agents", "instructions", "norms"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gsttm/norms.git"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Norm browsing remains available; initialization, synchronization, and authoring require trust."
+    }
+  },
   "activationEvents": [
     "onView:norms.active",
-    "onCommand:norms.refresh",
-    "onCommand:norms.showContext"
+    "onCommand:norms.init",
+    "onCommand:norms.sync",
+    "onCommand:norms.newNorm",
+    "onCommand:norms.filter"
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "colors": [
+      {
+        "id": "norms.primary",
+        "description": "Primary Norms interface accent.",
+        "defaults": {
+          "dark": "#3E57C4",
+          "light": "#283A8F",
+          "highContrast": "#3E57C4",
+          "highContrastLight": "#283A8F"
+        }
+      }
+    ],
     "commands": [
       {
-        "command": "norms.refresh",
-        "title": "Norms: Refresh"
+        "command": "norms.init",
+        "title": "Norms: Init Norms",
+        "icon": "$(rocket)",
+        "enablement": "isWorkspaceTrusted"
       },
       {
-        "command": "norms.showContext",
-        "title": "Norms: Show Context for Active File"
+        "command": "norms.sync",
+        "title": "Norms: Sync",
+        "icon": "$(sync)",
+        "enablement": "isWorkspaceTrusted"
+      },
+      {
+        "command": "norms.newNorm",
+        "title": "Norms: New Norm",
+        "icon": "$(add)",
+        "enablement": "isWorkspaceTrusted"
+      },
+      {
+        "command": "norms.filter",
+        "title": "Norms: Filter Norms"
+      },
+      {
+        "command": "norms.openNorm",
+        "title": "Norms: Open Norm"
       }
     ],
     "views": {
@@ -34,11 +77,27 @@
       ]
     },
     "menus": {
-      "view/title": [
+      "commandPalette": [
         {
-          "command": "norms.refresh",
-          "when": "view == norms.active",
-          "group": "navigation"
+          "command": "norms.openNorm",
+          "when": "false"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "norms.sync",
+          "when": "view == norms.active && viewItem == norms.repository.initialized",
+          "group": "inline@1"
+        },
+        {
+          "command": "norms.newNorm",
+          "when": "view == norms.active && viewItem == norms.repository.initialized",
+          "group": "inline@2"
+        },
+        {
+          "command": "norms.init",
+          "when": "view == norms.active && viewItem == norms.repository.uninitialized",
+          "group": "inline@1"
         }
       ]
     }

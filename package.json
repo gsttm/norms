@@ -13,7 +13,8 @@
   "scripts": {
     "build": "bun run build:cli && bun run build:vscode",
     "build:cli": "bun build packages/cli/src/index.tsx --target=bun --outfile=dist/norms.js",
-    "build:vscode": "bun build packages/vscode/src/extension.ts --target=node --outfile=packages/vscode/dist/extension.js --external=vscode",
+    "build:vscode": "bun build packages/vscode/src/extension.ts --target=node --format=cjs --outfile=packages/vscode/dist/extension.js --external=vscode",
+    "build:vscode-tests": "bun build packages/vscode/test/extension.integration.ts --target=node --format=cjs --outfile=packages/vscode/dist/test/extension.integration.js --external=vscode",
     "check": "tsc --noEmit",
     "dev": "bun packages/cli/src/index.tsx",
     "lint": "bun run check",
@@ -21,6 +22,7 @@
     "package:release": "bun scripts/build-release.ts",
     "test:e2e": "bun test packages/cli/test/workflow.e2e.test.ts",
     "test:installer": "sh scripts/test-installer.sh",
+    "test:vscode": "bun run build:vscode && bun run build:vscode-tests && vscode-test",
     "test": "bun test"
   },
   "dependencies": {
@@ -32,9 +34,12 @@
   },
   "devDependencies": {
     "@types/bun": "^1.2.21",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.12",
     "@types/vscode": "^1.103.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
     "typescript": "^5.9.2"
   }
 }

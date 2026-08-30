@@ -68,6 +68,18 @@ describe("CLI commands", () => {
     }
   });
 
+  test("proposes to a selected writable source", () => {
+    const root = fixture();
+    mkdirSync(join(root, ".norms/repository"), { recursive: true });
+    mkdirSync(join(root, ".norms/team"));
+    writeFileSync(join(root, ".norms/config.yaml"), "version: 1\nsources:\n  - name: repository\n    path: repository\n  - name: team\n    path: team\n");
+
+    const result = proposeNorm(root, { id: "team.selected", scopes: ["**/*"], body: "Use the selected source.", source: "team" });
+    expect(result.data).toEqual({ id: "team.selected", path: ".norms/team/team/selected.md", source: "team" });
+    expect(existsSync(join(root, result.data.path))).toBe(true);
+    expect(() => proposeNorm(root, { id: "team.missing", scopes: ["**/*"], body: "Missing.", source: "missing" })).toThrow("Writable source missing is not configured");
+  });
+
   test("sync protects existing adapters and check detects stale generated adapters", () => {
     const root = fixture();
     initProject(root, false, cache(root));

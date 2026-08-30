@@ -19,7 +19,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2023",
-    "types": ["bun", "node", "vscode"]
+    "types": ["bun", "mocha", "node", "vscode"]
   },
   "include": ["packages/**/*.ts", "packages/**/*.tsx"]
 }
