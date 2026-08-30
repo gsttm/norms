@@ -1,11 +1,11 @@
 # Norms
 
 ## Problem
-As more work is delegated to AI agents, coders and teams need a way to define how those agents should behave. AGENTS.md is fine, but doesn't scale well across repos, teams, and coding languages. Norms is an attempt to make it really easy for you and your agents to create norms that persist across repos and teams.
+As more work is delegated to AI agents, coders and teams need a way to define how those agents should behave. AGENTS.md is fine, but doesn't scale well across repos, teams, and coding languages. Norms is a simple attempt to make it really easy for you and your agents to create norms that persist.
 
 ## Summary
+Norms is a toolchain for storing repo-specific agent instructions. It keeps track of agent norms in Markdown files in a local .norms/ folder, then auto-populates them into an AGENTS.md. 
 
-Norms is a Git-native protocol and toolchain for persistent agent instructions. It keeps track of what norms you want your AI agents to follow so that everyone working in the codebase operates from the same playbook.
 
 ## Install
 
@@ -14,14 +14,6 @@ On macOS or Linux:
 ```sh
 curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | sh
 ```
-
-This installs the latest checksum-verified binary to `~/.local/bin` and starter meta-norms to `~/.cache/norms`. Set `NORMS_INSTALL_DIR`, `NORMS_CACHE_DIR`, or `NORMS_VERSION` on `sh` to override the defaults:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | NORMS_VERSION=v0.0.2 sh
-```
-
-Public releases include SHA-256 checksums and GitHub build-provenance attestations.
 
 ## Quick development setup
 
