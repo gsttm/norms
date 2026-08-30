@@ -58,5 +58,6 @@ Add `--json` for machine-readable output.
 - [Code structure](docs/code-structure.md)
 - [Development](docs/development.md)
 - [Releasing](docs/releasing.md)
+- [VS Code extension specification](docs/vscode-extension.md)
 - [Roadmap](ROADMAP.md)
 - [Phase 0 specification](docs/specs/phase-0.md)

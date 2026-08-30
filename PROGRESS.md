@@ -23,3 +23,4 @@
 | August 29, 2026 at 5:26 PM PST | Agent-evaluated lint | Added deterministic changed-file, norm, conflict, and diff context through `norms lint`. |
 | August 29, 2026 at 5:30 PM PST | Multi-agent adapters | Generated equivalent AGENTS, Claude, Cursor, and Copilot instructions with safe import, sync, check, and review handling. |
 | August 29, 2026 at 6:01 PM PST | Application palette | Added the shared terminal and VS Code extension color palette. |
+| August 29, 2026 at 6:41 PM PST | VS Code extension specification | Defined accessible norm browsing, focus grouping, and safe norm creation. |
