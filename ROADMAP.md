@@ -25,30 +25,34 @@ Current milestone: teams can share, apply, and govern norms across an organizati
 
 ### Foundation
 
-- [ ] Define the hosted API, threat model, tenancy boundaries, and Git-backed data model.
-- [ ] Sign in with GitHub or GitLab and map provider organizations, teams, repositories, and roles to Norms access.
-- [ ] Keep Git canonical; store endpoint-derived norm snapshots as immutable, auditable versions pinned in `.norms/lock.json`.
+- [x] Define the [initial architecture and trust boundaries](docs/specs/team-sharing.md).
+- [ ] Publish versioned endpoint and snapshot schemas with conformance fixtures in this repository.
+- [ ] Create the private hosted-service repository and implement tenant-isolated storage and deployment.
+- [ ] Sign in with GitHub or GitLab and map stable provider organization, team, repository, and role ids to Norms access.
+- [ ] Add GitHub App and GitLab integration flows with scoped repository access and verified webhooks.
 
 ### Team templates
 
-- [ ] Let authorized maintainers publish versioned organization and team templates.
-- [ ] Let `norms init` discover accessible templates, apply one or more, and record their sources and versions.
-- [ ] Support organization defaults, team overrides, repository additions, and explicit conflict detection without hidden precedence.
+- [ ] Connect or explicitly create one private team norms repository per organization.
+- [ ] Define versioned template manifests that select canonical norm and asset paths.
+- [ ] Let `norms init` discover authorized templates, apply one, and record its endpoint source and immutable snapshot.
+- [ ] Compose team and repository norms additively with existing duplicate and conflict rules; add no implicit precedence.
 
 ### Hosted sources and sync
 
-- [ ] Add authenticated endpoint sources to `.norms/config.yaml` alongside local and Git sources.
-- [ ] Make `norms sync` resolve endpoint policies from organization, team, repository, and user context into a reproducible lockfile.
+- [ ] Add `norms login` and `norms team connect` for GitHub and GitLab.
+- [ ] Add authenticated endpoint sources to `.norms/config.yaml` alongside local and Git sources without storing credentials.
+- [ ] Make `norms sync --update` resolve templates into content-addressed snapshots built from immutable Git commits.
 - [ ] Preserve lock-first offline operation; require explicit updates and recover the last valid state after endpoint failure.
-- [ ] Verify snapshot integrity and expose provenance for every derived norm.
+- [ ] Pin snapshot ids, digests, source commits, derivation inputs, and provenance in `.norms/lock.json`.
 
 ### Governance and rollout
 
-- [ ] Enforce owner, maintainer, contributor, and reader privileges using GitHub or GitLab membership.
-- [ ] Add review and approval workflows for template and shared-norm changes.
+- [ ] Enforce owner, maintainer, contributor, and reader privileges from current provider membership.
+- [ ] Use provider pull or merge requests, `CODEOWNERS`, and branch protection for content approval.
 - [ ] Show repository adoption, pinned versions, drift, conflicts, failed syncs, and available updates.
 - [ ] Automate cross-repository lockfile update reviews with staged rollout and rollback.
-- [ ] Record an audit history for sign-in, access, publication, approval, and rollout events.
+- [ ] Record service audit events for sign-in, access, connection, resolution, and rollout; keep content history and approval canonical in Git.
 
 ### Product integration
 
@@ -63,4 +67,4 @@ Current milestone: teams can share, apply, and govern norms across an organizati
 - [ ] Unauthorized users cannot discover, read, publish, approve, or apply restricted norms.
 - [ ] Every active norm is traceable to its provider identity, source, version, approval, and repository lock.
 
-Next: specify the hosted API, identity mapping, and immutable snapshot format.
+Next: publish the endpoint, template manifest, snapshot, and lockfile contracts with conformance fixtures.

@@ -26,7 +26,7 @@ Norms uses TypeScript on Bun. React and Ink provide terminal UI; Ink uses Yoga f
 - `.github/workflows/`: cross-platform CI and tagged releases.
 - `.norms/`: canonical repository instructions.
 - `package.json`, `tsconfig.json`, `bun.lock`, and `.gitattributes`: workspace, toolchain, and cross-platform text configuration.
-- `docs/`: current documentation; `docs/specs/` stores historical contracts.
+- `docs/`: current documentation; `docs/specs/` stores proposed and historical implementation contracts.
 - `ROADMAP.md`: prioritized future work.
 
 ## Generated paths

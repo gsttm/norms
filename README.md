@@ -102,4 +102,5 @@ Norms currently outputs only `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/norms.mdc`
 - [Development](docs/development.md)
 - [Releasing](docs/releasing.md)
 - [VS Code extension](docs/vscode-extension.md)
+- [Team sharing specification](docs/specs/team-sharing.md)
 - [Roadmap](ROADMAP.md)
