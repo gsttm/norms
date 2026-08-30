@@ -1,6 +1,6 @@
 {
   "name": "norms",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "type": "module",
   "packageManager": "bun@1.4.0",
@@ -40,6 +40,7 @@
     "@types/vscode": "^1.103.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^3.9.2",
     "typescript": "^5.9.2"
   }
 }

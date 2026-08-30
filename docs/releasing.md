@@ -1,6 +1,6 @@
 # Releasing
 
-The root `package.json` version is the CLI release version. Tags must match it as `vX.Y.Z`.
+The root and VS Code package versions must match. Tags use `vX.Y.Z`.
 
 ```sh
 bun ci
@@ -12,7 +12,7 @@ git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
-The tag workflow repeats verification, builds macOS, Linux, and Windows binaries plus the starter meta-norm pack, verifies `SHA256SUMS`, attests every asset, publishes the release, and tests the public installer.
+The tag workflow builds and attests platform binaries, the starter pack, and `norms-vscode.vsix`, then publishes them with `SHA256SUMS` and tests the public installer.
 
 Re-run an existing release without replacing its assets:
 

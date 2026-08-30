@@ -14,6 +14,10 @@ const builds = [
 
 const root = process.cwd();
 const directory = join(root, "dist/release");
+const extensionDirectory = join(root, "packages/vscode");
+const rootVersion = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
+const extensionVersion = JSON.parse(readFileSync(join(extensionDirectory, "package.json"), "utf8")).version;
+if (rootVersion !== extensionVersion) throw new Error("CLI and VS Code extension versions must match.");
 rmSync(directory, { recursive: true, force: true });
 mkdirSync(directory, { recursive: true });
 process.chdir(directory);
@@ -33,6 +37,23 @@ for (const [target, name] of builds) {
 const starterPack = join(directory, "norms-meta-norms.json");
 writeFileSync(starterPack, serializeStarterPack());
 files.push(starterPack);
+
+const extensionBuild = await Bun.build({
+  entrypoints: [join(extensionDirectory, "src/extension.ts")],
+  external: ["vscode"],
+  format: "cjs",
+  outdir: join(extensionDirectory, "dist"),
+  target: "node",
+});
+if (!extensionBuild.success) throw new AggregateError(extensionBuild.logs, "Failed to build the VS Code extension.");
+const vsix = join(directory, "norms-vscode.vsix");
+const packageResult = Bun.spawnSync(["bunx", "vsce", "package", "--no-dependencies", "--out", vsix], {
+  cwd: extensionDirectory,
+  stdout: "inherit",
+  stderr: "inherit",
+});
+if (packageResult.exitCode !== 0) throw new Error("Failed to package the VS Code extension.");
+files.push(vsix);
 
 const checksums = files
   .sort()

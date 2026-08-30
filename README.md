@@ -15,6 +15,8 @@ On macOS or Linux:
 curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | sh
 ```
 
+The installer asks whether to add the VS Code extension. Missing VS Code or extension failures do not affect the CLI install. Set `NORMS_INSTALL_VSCODE=yes` or `no` for non-interactive use.
+
 ## Quick development setup
 
 ```sh

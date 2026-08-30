@@ -1,6 +1,6 @@
 # VS Code extension specification
 
-Status: implemented; publication pending
+Status: implemented and packaged in GitHub releases; Marketplace publication pending
 
 ## Goal
 
