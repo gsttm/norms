@@ -2,7 +2,7 @@
   "name": "norms-vscode",
   "displayName": "Norms",
   "description": "Browse and create Git-backed agent norms.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "norms",
   "engines": {
     "vscode": "^1.103.0"
