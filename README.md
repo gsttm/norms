@@ -1,9 +1,10 @@
 # Norms
 
 ## Summary
-Define your team’s coding rules once, store them in Git, and make every coding agent follow them.
+Define your coding rules once, store them in Git, and make every coding agent follow them.
 
-Norms stores repo-level instructions as Markdown in .norms/, resolves them, and generates the rule files each coding agent expects. Instead of repeating instructions in prompts or maintaining separate rule files for every agent, you define each instruction once as a norm.
+Norms stores repo-level instructions as Markdown in `.norms/`, resolves them, and generates the rule files each coding agent expects. Write each instruction once instead of duplicating it across agents and prompts.
+
 
 In practice, you’ll usually create and manage norms through your coding agent. Ask it to add or update a norm, and Norms handles the underlying Markdown and Git workflow.
 
