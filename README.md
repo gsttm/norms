@@ -25,6 +25,21 @@ applies_to:
 Cover user-visible behavior with integration tests.
 ```
 
+## What norms can encode
+
+Norms can capture any reusable convention an agent should apply, including:
+
+- merge request titles, descriptions, checklists, and review steps;
+- documentation structure, tone, examples, and update requirements;
+- website palettes, typography, spacing, components, and accessibility;
+- preferred or prohibited languages, runtimes, frameworks, and libraries;
+- architecture boundaries, directory ownership, APIs, errors, and data patterns;
+- testing expectations, CI gates, releases, and deployment rules;
+- security, privacy, secrets, and dependency policies;
+- tool use, generated files, and when an agent must ask a human.
+
+Scope each norm to the narrowest relevant paths. Use repository-wide norms only for universal rules.
+
 ## Install
 
 On macOS or Linux:
