@@ -1,13 +1,13 @@
 # Norms
 
 ## Summary
-Norms stores Git-versioned agent instructions in `.norms/`, resolves them by scope and source, and generates adapters for common coding agents.
+Norms is repository-level memory for coding agents.
 
-## How it works
+Norms stores Git-versioned agent instructions as Markdown in `.norms/`, resolves them by scope and source, and generates adapters for common coding agents. Instead of repeating instructions in prompts or maintaining separate rule files for every agent, you can write each reusable instruction once as a norm, then have your agent follow it as they would any other repo-wide instruction.
 
-Norms is repository-level memory for coding agents. Instead of repeating instructions in prompts or maintaining separate rule files for every agent, write each reusable instruction once as a norm.
+Run `norms init`, create norms with `norms propose` or edit the Markdown directly, then run `norms sync`. Sync resolves local and shared norms and regenerates the instruction files that agents read. Agents can also request rules for one path with `norms context <path>`. 
 
-Store one Markdown file per norm in `.norms/norms/` and commit it with the repository. Run `norms init` once, create norms with `norms propose` or edit the Markdown directly, then run `norms sync`. Sync resolves local and shared norms and regenerates the instruction files that agents read. Agents can also request rules for one path with `norms context <path>`.
+Practically, we expect that the majority of norms will be requested and managed through an agent, instead of through this CLI. 
 
 ## Canonical norm
 
@@ -33,7 +33,6 @@ On macOS or Linux:
 curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | sh
 ```
 
-The installer keeps the optional VS Code choice and result in one terminal panel. Missing VS Code or extension failures do not affect the CLI install. Set `NORMS_INSTALL_VSCODE=yes` or `no` for non-interactive use.
 
 ## Quick development setup
 
@@ -50,7 +49,7 @@ In a development checkout, invoke Norms through `./dist/norms.js`. Building does
 
 ## Basics
 
-Norm Markdown lives in `.norms/norms/`. `.norms/config.yaml` composes sources, `.norms/lock.json` pins imports, and `.norms/assets/` stores referenced files.
+Norm Markdown lives in `.norms/norms/` and `.norms/assets/` stores referenced files.
 
 `norms sync` generates `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/norms.mdc`, and `.github/copilot-instructions.md`. Edit `.norms/`, never generated adapters.
 
@@ -80,4 +79,3 @@ Add `--json` for machine-readable output.
 - [Releasing](docs/releasing.md)
 - [VS Code extension](docs/vscode-extension.md)
 - [Roadmap](ROADMAP.md)
-- [Phase 0 specification](docs/specs/phase-0.md)
