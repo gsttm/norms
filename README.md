@@ -3,12 +3,11 @@
 ## Summary
 Define your coding rules once, store them in Git, and make every coding agent follow them.
 
-Norms stores repo-level instructions as Markdown in `.norms/`, resolves them, and generates the rule files each coding agent expects. Write each instruction once instead of duplicating it across agents and prompts.
+Norms stores repo-level instructions as Markdown in `.norms/`, resolves them, and generates the rule files each coding agent expects. 
 
+In practice, you’ll usually manage norms through your coding agent. After installing Norms and running `norms init` in your current repo, just tell your agent to add or update a norm. It will write the norm, sync the generated rule files, and follow the updated instructions from then on.
 
-In practice, you’ll usually create and manage norms through your coding agent. Ask it to add or update a norm, and Norms handles the underlying Markdown and Git workflow.
-
-You can also manage norms directly from the CLI: run `norms init` to set up a repo, `norms propose` to create a norm, and `norms sync` to generate instructions for your coding agents. Norms are just Markdown, so you can always edit them by hand.
+You can also manage norms directly from the CLI with `norms propose` and `norms sync`. And because norms are just Markdown, you can always edit them by hand.
 
 ## Canonical norm
 
