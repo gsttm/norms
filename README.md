@@ -3,6 +3,28 @@
 ## Summary
 Norms stores Git-versioned agent instructions in `.norms/`, resolves them by scope and source, and generates adapters for common coding agents.
 
+## How it works
+
+Norms is repository-level memory for coding agents. Instead of repeating instructions in prompts or maintaining separate rule files for every agent, write each reusable instruction once as a norm.
+
+Store one Markdown file per norm in `.norms/norms/` and commit it with the repository. Run `norms init` once, create norms with `norms propose` or edit the Markdown directly, then run `norms sync`. Sync resolves local and shared norms and regenerates the instruction files that agents read. Agents can also request rules for one path with `norms context <path>`.
+
+## Canonical norm
+
+Each norm has a stable id, optional path scopes, and one clear instruction. For example, `.norms/norms/testing/integration.md`:
+
+```markdown
+---
+id: testing.integration
+applies_to:
+  - "packages/**"
+---
+
+# Test behavior
+
+Cover user-visible behavior with integration tests.
+```
+
 ## Install
 
 On macOS or Linux:
