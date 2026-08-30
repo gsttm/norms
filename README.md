@@ -1,13 +1,13 @@
 # Norms
 
 ## Summary
-Norms is repository-level memory for coding agents.
+Norms are repo-level instructions for coding agents.
 
 Norms stores Git-versioned agent instructions as Markdown in `.norms/`, resolves them by scope and source, and generates adapters for common coding agents. Instead of repeating instructions in prompts or maintaining separate rule files for every agent, you can write each reusable instruction once as a norm, then have your agent follow it as they would any other repo-wide instruction.
 
-Run `norms init`, create norms with `norms propose` or edit the Markdown directly, then run `norms sync`. Sync resolves local and shared norms and regenerates the instruction files that agents read. Agents can also request rules for one path with `norms context <path>`. 
+Run `norms init`, create norms with `norms propose` or edit the Markdown directly, then run `norms sync` to generate agent instructions. Agents can also request rules for one path with `norms context <path>`. 
 
-Practically, we expect that the majority of norms will be requested and managed through an agent, instead of through this CLI. 
+Practically, we expect that the majority of norms will be requested and managed through an agent, instead of through this CLI.
 
 ## Canonical norm
 
