@@ -27,3 +27,4 @@
 | August 29, 2026 at 6:50 PM PST | VS Code panel scope | Limited panel actions to Sync and New Norm after initialization, or Init Norms before it, and excluded current-file applicability. |
 | August 29, 2026 at 7:08 PM PST | Production VS Code extension | Implemented accessible multi-root browsing, exact state-based actions, safe norm authoring, refresh behavior, and extension-host coverage. |
 | August 29, 2026 at 7:41 PM PST | One-line extension install | Added a checksummed release VSIX and optional, interactive VS Code installation with graceful fallback. |
+| August 29, 2026 at 8:01 PM PST | Contained installer UI | Kept the VS Code choice, result, PATH guidance, and failure details in one panel while suppressing successful launcher noise. |

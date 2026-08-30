@@ -6,8 +6,24 @@ fail() {
   exit 1
 }
 
-warn() {
-  printf 'norms installer: %s\n' "$1" >&2
+panel_border() {
+  printf '%s' "$1"
+  panel_count=0
+  while [ "$panel_count" -lt 76 ]; do
+    printf '─'
+    panel_count=$((panel_count + 1))
+  done
+  printf '%s\n' "$2"
+}
+
+panel_line() {
+  printf '│ %-74.74s │\n' "$1"
+}
+
+panel_log() {
+  fold -w 74 "$1" | while IFS= read -r panel_log_line || [ -n "$panel_log_line" ]; do
+    panel_line "$panel_log_line"
+  done
 }
 
 command -v curl >/dev/null 2>&1 || fail "curl is required"
@@ -81,19 +97,32 @@ install -m 0755 "$temporary/$asset" "$install_dir/norms"
 cache_dir="${NORMS_CACHE_DIR:-${XDG_CACHE_HOME:-${HOME:?HOME is required}/.cache}/norms}"
 mkdir -p "$cache_dir"
 install -m 0644 "$temporary/$starter" "$cache_dir/meta-norms.json"
-"$install_dir/norms" --version
+installed_title="$("$install_dir/norms" --version)"
+panel_border '╭' '╮'
+panel_line "$installed_title"
+panel_line ""
 
 install_vscode="${NORMS_INSTALL_VSCODE:-ask}"
 if [ "$install_vscode" = "ask" ]; then
   answer=""
   prompted="no"
-  if [ -t 0 ]; then
-    printf 'Install the Norms VS Code extension? [y/N] '
-    IFS= read -r answer || answer=""
+  prompt='Install the Norms VS Code extension? [y/N] '
+  if [ -t 0 ] && [ -t 1 ]; then
+    printf '│ %s' "$prompt"
+    if ! IFS= read -r answer; then answer=""; printf '\n'; fi
+    printf '\033[1A\r'
+    panel_line "$prompt$answer"
     prompted="yes"
   elif [ -t 1 ] && [ -r /dev/tty ]; then
-    printf 'Install the Norms VS Code extension? [y/N] '
-    if IFS= read -r answer 2>/dev/null < /dev/tty; then prompted="yes"; else printf '\n'; fi
+    printf '│ %s' "$prompt"
+    if IFS= read -r answer 2>/dev/null < /dev/tty; then
+      prompted="yes"
+    else
+      answer=""
+      printf '\n'
+    fi
+    printf '\033[1A\r'
+    panel_line "$prompt$answer"
   fi
   if [ "$prompted" = "yes" ]; then
     case "$answer" in
@@ -102,10 +131,12 @@ if [ "$install_vscode" = "ask" ]; then
     esac
   else
     install_vscode="no"
-    warn "no interactive terminal; skipped the optional VS Code extension"
+    extension_message="VS Code extension skipped: no interactive terminal."
   fi
 fi
 
+extension_details=""
+extension_message="${extension_message:-}"
 case "$install_vscode" in
   1|y|Y|yes|YES|true|TRUE)
     code_command="${NORMS_CODE_COMMAND:-}"
@@ -121,22 +152,33 @@ case "$install_vscode" in
       code_command=""
     fi
     if [ -z "$code_command" ]; then
-      warn "VS Code was not found; skipped extension installation"
-    elif ! download "$release/$vscode_asset" "$temporary/$vscode_asset"; then
-      warn "could not download the VS Code extension; the CLI remains installed"
+      extension_message="VS Code was not found; extension installation skipped."
+    elif ! download "$release/$vscode_asset" "$temporary/$vscode_asset" 2>"$temporary/vscode-download.log"; then
+      extension_message="VS Code extension download failed; CLI remains installed."
+      extension_details="$temporary/vscode-download.log"
     elif ! checksum_valid "$vscode_asset"; then
-      warn "VS Code extension checksum verification failed; the CLI remains installed"
-    elif "$code_command" --install-extension "$temporary/$vscode_asset" --force; then
-      printf 'Installed the Norms VS Code extension.\n'
+      extension_message="VS Code extension checksum failed; CLI remains installed."
+    elif NODE_NO_WARNINGS=1 "$code_command" --install-extension "$temporary/$vscode_asset" --force >"$temporary/vscode-install.log" 2>&1; then
+      extension_message="Installed the Norms VS Code extension."
     else
-      warn "VS Code extension installation failed; the CLI remains installed"
+      extension_message="VS Code extension installation failed; CLI remains installed."
+      extension_details="$temporary/vscode-install.log"
     fi
     ;;
-  0|n|N|no|NO|false|FALSE) ;;
-  *) warn "invalid NORMS_INSTALL_VSCODE value; skipped extension installation" ;;
+  0|n|N|no|NO|false|FALSE)
+    extension_message="VS Code extension skipped."
+    ;;
+  *) extension_message="Invalid VS Code option; extension installation skipped." ;;
 esac
 
+panel_line ""
+panel_line "$extension_message"
+if [ -n "$extension_details" ] && [ -s "$extension_details" ]; then
+  panel_line "VS Code output:"
+  panel_log "$extension_details"
+fi
 case ":${PATH:-}:" in
   *":$install_dir:"*) ;;
-  *) printf 'Add %s to PATH to run norms.\n' "$install_dir" >&2 ;;
+  *) panel_line "Add $install_dir to PATH to run norms." ;;
 esac
+panel_border '╰' '╯'
