@@ -61,7 +61,9 @@ describe("golden two-repository workflow", () => {
     const readme = command(consumer, ["context", "README.md"]) as Context;
     expect(readme.norms.map(({ id }) => id)).toContain("repository.imported-agent-instructions");
     expect(readme.norms.map(({ id }) => id)).not.toContain("shared.typescript");
-    expect(readFileSync(join(consumer, "AGENTS.md"), "utf8")).toContain("shared.typescript");
+    for (const path of ["AGENTS.md", "CLAUDE.md", ".cursor/rules/norms.mdc", ".github/copilot-instructions.md"]) {
+      expect(readFileSync(join(consumer, path), "utf8")).toContain("shared.typescript");
+    }
 
     command(consumer, ["propose", "--id", "policy.one", "--conflicts-with", "policy.two", "--body", "Use policy one."]);
     command(consumer, ["propose", "--id", "policy.two", "--body", "Use policy two."]);

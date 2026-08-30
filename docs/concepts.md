@@ -24,7 +24,7 @@ Imported norms are changed in their source repository, then synced into consumer
 
 ## Agent integration
 
-`norms sync` generates `AGENTS.md` with universal usage guidance and active norms. Agents use `norms context [path] --json` for path-specific context and `norms propose` for reusable new instructions.
+`norms sync` generates adapters for AGENTS, Claude, Cursor, and Copilot with the same usage guidance and active norms. Agents use `norms context [path] --json` for path-specific context and `norms propose` for reusable new instructions.
 
 Norm changes use normal Git review and history.
 

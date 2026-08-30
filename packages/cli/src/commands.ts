@@ -8,9 +8,10 @@ import {
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 import {
+  GENERATED_ADAPTER_PATHS,
   STARTER_PACK,
   diagnoseScopes,
-  generateAgentAdapter,
+  generateAdapters,
   isGeneratedAdapter,
   inspectConflicts,
   loadNorms,
@@ -48,6 +49,13 @@ export interface CommandResult<T = unknown> {
   details: string[];
   data: T;
 }
+
+const ADAPTER_IMPORTS = [
+  { path: "AGENTS.md", id: "repository.imported-agent-instructions" },
+  { path: "CLAUDE.md", id: "repository.imported-claude-instructions" },
+  { path: ".cursor/rules/norms.mdc", id: "repository.imported-cursor-instructions" },
+  { path: ".github/copilot-instructions.md", id: "repository.imported-copilot-instructions" },
+] as const;
 
 export function initProject(
   root: string,
@@ -90,28 +98,33 @@ export function initProject(
     seeded.push(relativeName(root, target));
   }
 
-  const adapterPath = join(root, "AGENTS.md");
-  const importedPath = join(directory, "norms/repository/imported-agent-instructions.md");
-  let importedExisting = false;
-  if (importExisting && existsSync(adapterPath)) {
-    const existing = readFileSync(adapterPath, "utf8");
-    if (!isGeneratedAdapter(existing) && !existsSync(importedPath)) {
-      mkdirSync(dirname(importedPath), { recursive: true });
-      writeFileSync(
-        importedPath,
-        serializeNorm("repository.imported-agent-instructions", ["**/*"], existing),
-      );
-      created.push(relativeName(root, importedPath));
-      importedExisting = true;
+  const importedAdapters: string[] = [];
+  if (importExisting) {
+    for (const adapter of ADAPTER_IMPORTS) {
+      const adapterPath = join(root, adapter.path);
+      if (!existsSync(adapterPath)) continue;
+      const existing = readFileSync(adapterPath, "utf8");
+      if (isGeneratedAdapter(existing)) continue;
+      const importedPath = join(directory, "norms", normPathForId(adapter.id));
+      const imported = serializeNorm(adapter.id, ["**/*"], existing);
+      if (existsSync(importedPath) && readFileSync(importedPath, "utf8") !== imported) {
+        throw new Error(`${adapter.path} differs from its existing imported norm at ${relativeName(root, importedPath)}.`);
+      }
+      if (!existsSync(importedPath)) {
+        mkdirSync(dirname(importedPath), { recursive: true });
+        writeFileSync(importedPath, imported);
+        created.push(relativeName(root, importedPath));
+      }
+      importedAdapters.push(adapter.path);
     }
   }
 
-  const sync = syncProject(root);
+  const sync = syncProject(root, false, importedAdapters);
   return {
     summary: "Norms initialized.",
     details: [
       ...(scaffoldCreated ? ["created .norms/"] : []),
-      ...(importedExisting ? ["imported existing AGENTS.md"] : []),
+      ...(importedAdapters.length ? [`imported existing ${importedAdapters.join(", ")}`] : []),
       ...(seeded.length ? [`seeded ${seeded.length} starter meta-norms`] : []),
       ...sync.details,
     ],
@@ -192,9 +205,11 @@ export function statusForProject(root: string): CommandResult {
   const norms = loadNorms(root);
   const lockState = readLockfileState(root);
   const lock = lockState.lockfile;
-  const adapterPath = join(root, "AGENTS.md");
-  const adapterSynced =
-    existsSync(adapterPath) && readFileSync(adapterPath, "utf8") === generateAgentAdapter(norms);
+  const adapters = adaptersForProject(root, norms);
+  const staleAdapters = adapters.filter(({ filePath, content }) =>
+    !existsSync(filePath) || readFileSync(filePath, "utf8") !== content
+  ).map(({ path }) => path);
+  const adapterSynced = staleAdapters.length === 0;
   const remoteSources = config.sources.filter((source) => source.git);
   const conflictReport = inspectConflicts(norms);
   const lockMatches = remoteSources.length === lock.sources.length && remoteSources.every((source) => {
@@ -213,7 +228,7 @@ export function statusForProject(root: string): CommandResult {
     details: [
       `active norms: ${norms.length}`,
       `sources: ${config.sources.length}`,
-      `adapter: ${adapterSynced ? "synced" : "stale"}`,
+      `adapters: ${adapterSynced ? "synced" : `stale (${staleAdapters.join(", ")})`}`,
       `imports: ${importsSynced ? "synced" : "stale"}`,
       `config: ${lockMatches ? "matches lock" : "needs update"}`,
       `lock: ${lockState.migratedFrom ? "migration needed" : "current"}`,
@@ -221,7 +236,7 @@ export function statusForProject(root: string): CommandResult {
       `unresolved conflict targets: ${conflictReport.missingTargets.length}`,
       `git: ${state.label}`,
     ],
-    data: { synced, adapterSynced, importsSynced, lockMigration: lockState.migratedFrom, norms: norms.length, sources: config.sources.length, conflicts: conflictReport, git: state },
+    data: { synced, adapterSynced, staleAdapters, importsSynced, lockMigration: lockState.migratedFrom, norms: norms.length, sources: config.sources.length, conflicts: conflictReport, git: state },
   };
 }
 
@@ -240,12 +255,12 @@ export function proposeNorm(
   writeFileSync(target, serializeNorm(input.id, input.scopes.length ? input.scopes : ["**/*"], input.body, input.conflictsWith));
   return {
     summary: `Proposed ${input.id}.`,
-    details: [`wrote ${relativeName(root, target)}`, "Run `norms sync` to refresh AGENTS.md."],
+    details: [`wrote ${relativeName(root, target)}`, "Run `norms sync` to refresh generated adapters."],
     data: { id: input.id, path: relativeName(root, target), source: source.name },
   };
 }
 
-export function syncProject(root: string, update = false): CommandResult {
+export function syncProject(root: string, update = false, replaceAdapters: readonly string[] = []): CommandResult {
   const config = readConfig(root);
   const remoteSources = config.sources.filter(({ git }) => git);
   let state;
@@ -257,9 +272,11 @@ export function syncProject(root: string, update = false): CommandResult {
   }
   const snapshots = remoteSources.map(({ name }) => captureImport(root, name));
   const lockPath = join(normsDirectory(root), "lock.json");
-  const adapterPath = join(root, "AGENTS.md");
   const previousLock = existsSync(lockPath) ? readFileSync(lockPath, "utf8") : undefined;
-  const previousAdapter = existsSync(adapterPath) ? readFileSync(adapterPath, "utf8") : undefined;
+  const previousAdapters = GENERATED_ADAPTER_PATHS.map((path) => {
+    const filePath = join(root, path);
+    return { path, filePath, content: existsSync(filePath) ? readFileSync(filePath, "utf8") : undefined };
+  });
 
   try {
     const locked = update
@@ -274,21 +291,34 @@ export function syncProject(root: string, update = false): CommandResult {
     }
     const lockfile: Lockfile = { version: 2, sources: locked };
     const norms = loadNorms(root);
+    const adapters = adaptersForProject(root, norms);
+    for (const adapter of adapters) {
+      if (
+        existsSync(adapter.filePath)
+        && !isGeneratedAdapter(readFileSync(adapter.filePath, "utf8"))
+        && !replaceAdapters.includes(adapter.path)
+      ) {
+        throw new Error(`${adapter.path} is not generated by Norms. Import or move it before sync.`);
+      }
+    }
     writeFileSync(lockPath, `${JSON.stringify(lockfile, null, 2)}\n`);
-    writeFileSync(adapterPath, generateAgentAdapter(norms));
+    for (const adapter of adapters) {
+      mkdirSync(dirname(adapter.filePath), { recursive: true });
+      writeFileSync(adapter.filePath, adapter.content);
+    }
     return {
       summary: update ? "Norms updated." : "Norms synced.",
       details: [
         ...(remoteSources.length ? [`${update ? "updated" : "restored"} ${remoteSources.length} import${remoteSources.length === 1 ? "" : "s"}`] : []),
         ...(state.migratedFrom ? [`migrated lockfile from version ${state.migratedFrom}`] : []),
-        `generated AGENTS.md with ${norms.length} norm${norms.length === 1 ? "" : "s"}`,
+        `generated ${adapters.length} adapters with ${norms.length} norm${norms.length === 1 ? "" : "s"}`,
       ],
-      data: { sources: config.sources.length, norms: norms.length, updated: update, lockfile },
+      data: { sources: config.sources.length, norms: norms.length, updated: update, lockfile, adapters: adapters.map(({ path }) => path) },
     };
   } catch (error) {
     for (const snapshot of snapshots) restoreImport(root, snapshot);
     restoreFile(lockPath, previousLock);
-    restoreFile(adapterPath, previousAdapter);
+    for (const adapter of previousAdapters) restoreFile(adapter.filePath, adapter.content);
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Sync failed; previous imports and generated files were restored. ${message}`);
   }
@@ -318,9 +348,11 @@ export function checkProject(root: string): CommandResult {
   for (const locked of lock.sources) {
     if (!remoteSources.some(({ name }) => name === locked.name)) errors.push(`lock contains removed source ${locked.name}`);
   }
-  const adapterPath = join(root, "AGENTS.md");
-  if (!existsSync(adapterPath) || readFileSync(adapterPath, "utf8") !== generateAgentAdapter(norms)) {
-    errors.push("AGENTS.md is stale; run `norms sync`");
+  const adapters = adaptersForProject(root, norms);
+  for (const adapter of adapters) {
+    if (!existsSync(adapter.filePath) || readFileSync(adapter.filePath, "utf8") !== adapter.content) {
+      errors.push(`${adapter.path} is stale; run \`norms sync\``);
+    }
   }
   if (errors.length) throw new Error(`Norms check failed:\n- ${errors.join("\n- ")}`);
   return {
@@ -330,7 +362,7 @@ export function checkProject(root: string): CommandResult {
       "no active declared conflicts",
       ...(conflictReport.missingTargets.length ? [`${conflictReport.missingTargets.length} unresolved conflict target${conflictReport.missingTargets.length === 1 ? "" : "s"}`] : []),
       `${remoteSources.length} imports pinned`,
-      "AGENTS.md current",
+      `${adapters.length} adapters current`,
     ],
     data: { valid: true, norms: norms.length, imports: remoteSources.length },
   };
@@ -341,14 +373,14 @@ export function reviewProject(
   input: { title: string; body?: string; base?: string; branch?: string },
 ): CommandResult {
   checkProject(root);
-  const changes = runGit(root, ["status", "--porcelain=v1", "--", ".norms", "AGENTS.md"]);
+  const changes = runGit(root, ["status", "--porcelain=v1", "--", ".norms", ...GENERATED_ADAPTER_PATHS]);
   if (!changes) throw new Error("No Norms changes to review.");
   let branch = currentBranch(root);
   if (!branch || branch === "main" || branch === "master") {
     branch = input.branch ?? `norms/${slug(input.title)}-${dateStamp()}`;
     runGit(root, ["switch", "-c", branch]);
   }
-  runGit(root, ["add", "--", ".norms", "AGENTS.md"]);
+  runGit(root, ["add", "--", ".norms", ...GENERATED_ADAPTER_PATHS]);
   runGit(root, ["commit", "-m", input.title]);
   runGit(root, ["push", "--set-upstream", "origin", branch]);
   const review = openReview({
@@ -370,6 +402,10 @@ function writeIfMissing(path: string, content: string, root: string, created: st
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
   created.push(relativeName(root, path));
+}
+
+function adaptersForProject(root: string, norms: Norm[]) {
+  return generateAdapters(norms).map((adapter) => ({ ...adapter, filePath: join(root, adapter.path) }));
 }
 
 function starterCacheFile(): string {

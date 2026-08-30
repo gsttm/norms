@@ -21,3 +21,4 @@
 | August 29, 2026 at 4:50 PM PST | Concise init output | Collapsed initialization scaffolding into one human-facing line while preserving JSON detail. |
 | August 29, 2026 at 5:15 PM PST | Explain and conflicts | Added deterministic conflict declarations, scope diagnostics, and `norms explain`. |
 | August 29, 2026 at 5:26 PM PST | Agent-evaluated lint | Added deterministic changed-file, norm, conflict, and diff context through `norms lint`. |
+| August 29, 2026 at 5:30 PM PST | Multi-agent adapters | Generated equivalent AGENTS, Claude, Cursor, and Copilot instructions with safe import, sync, check, and review handling. |

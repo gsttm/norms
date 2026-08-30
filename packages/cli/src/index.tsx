@@ -20,7 +20,7 @@ import {
 const HELP = `norms <command> [options]
 
 Commands:
-  init                  Initialize starter norms and AGENTS.md
+  init                  Initialize norms and agent adapters
   list                  List active norms
   context [path]        Print applicable norms
   explain <path>        Diagnose scopes and declared conflicts
@@ -28,7 +28,7 @@ Commands:
   status                Show sync and Git state
   propose               Write a local norm proposal
   sync [--update]       Restore pins or explicitly update them
-  check                 Validate config, norms, lock, and adapter
+  check                 Validate config, norms, lock, and adapters
   review                Commit, push, and open a Git review
 
 Global:

@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import type { LockedSource, SourceConfig } from "@norms/core";
-import { normsDirectory } from "@norms/core";
+import { GENERATED_ADAPTER_PATHS, normsDirectory } from "@norms/core";
 
 export type GitStateLabel =
   | "canonical"
@@ -51,7 +51,7 @@ export function originUrl(root: string): string {
 }
 
 export function gitState(root: string): GitState {
-  const status = runGit(root, ["status", "--porcelain=v1", "--untracked-files=all", "--", ".norms", "AGENTS.md"]);
+  const status = runGit(root, ["status", "--porcelain=v1", "--untracked-files=all", "--", ".norms", ...GENERATED_ADAPTER_PATHS]);
   const codes = status ? status.split("\n").map((line) => line.slice(0, 2)) : [];
   const dirty = codes.length > 0;
   const conflict = codes.some((code) => ["DD", "AU", "UD", "UA", "DU", "AA", "UU"].includes(code));

@@ -26,7 +26,7 @@ describe("Git state", () => {
     runGit(root, ["switch", "--quiet", "-c", "norms/example"]);
     expect(gitState(root).label).toBe("proposed in review");
 
-    writeFileSync(join(root, "AGENTS.md"), "changed\n");
+    writeFileSync(join(root, "CLAUDE.md"), "changed\n");
     expect(gitState(root).label).toBe("locally modified");
   });
 
