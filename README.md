@@ -1,13 +1,13 @@
 # Norms
 
 ## Summary
-Norms are repo-level instructions for coding agents.
+Define your team’s coding rules once, store them in Git, and make every coding agent follow them.
 
-Norms stores Git-versioned agent instructions as Markdown in `.norms/`, resolves them by scope and source, and generates adapters for common coding agents. Instead of repeating instructions in prompts or maintaining separate rule files for every agent, you can write each reusable instruction once as a norm, then have your agent follow it as they would any other repo-wide instruction.
+Norms stores repo-level instructions as Markdown in .norms/, resolves them, and generates the rule files each coding agent expects. Instead of repeating instructions in prompts or maintaining separate rule files for every agent, you define each instruction once as a norm.
 
-Run `norms init`, create norms with `norms propose` or edit the Markdown directly, then run `norms sync` to generate agent instructions. Agents can also request rules for one path with `norms context <path>`. 
+In practice, you’ll usually create and manage norms through your coding agent. Ask it to add or update a norm, and Norms handles the underlying Markdown and Git workflow.
 
-Practically, we expect that the majority of norms will be requested and managed through an agent, instead of through this CLI.
+You can also manage norms directly from the CLI: run `norms init` to set up a repo, `norms propose` to create a norm, and `norms sync` to generate instructions for your coding agents. Norms are just Markdown, so you can always edit them by hand.
 
 ## Canonical norm
 
@@ -27,18 +27,16 @@ Cover user-visible behavior with integration tests.
 
 ## What norms can encode
 
-Norms can capture any reusable convention an agent should apply, including:
+Norms can encode any reusable instruction you want agents to follow. Because norms are just Markdown, they can also include images, diagrams, links, code snippets, tables, and other supporting context.
 
-- merge request titles, descriptions, checklists, and review steps;
-- documentation structure, tone, examples, and update requirements;
-- website palettes, typography, spacing, components, and accessibility;
-- preferred or prohibited languages, runtimes, frameworks, and libraries;
-- architecture boundaries, directory ownership, APIs, errors, and data patterns;
-- testing expectations, CI gates, releases, and deployment rules;
-- security, privacy, secrets, and dependency policies;
-- tool use, generated files, and when an agent must ask a human.
+For example:
 
-Scope each norm to the narrowest relevant paths. Use repository-wide norms only for universal rules.
+“All new API endpoints must include an integration test.”
+“Use uv for Python dependencies; don’t add requirements.txt.”
+“Keep React components under 300 lines and move shared state into hooks.”
+“Every merge request must explain what changed, why, and how it was tested.”
+“Use our design tokens—don’t introduce new colors or spacing values.”
+“Never modify generated files directly; update the source and regenerate them.”
 
 ## Install
 
