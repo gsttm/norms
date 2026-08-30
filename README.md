@@ -31,12 +31,12 @@ Norms can encode any reusable instruction you want agents to follow. Because nor
 
 For example:
 
-“All new API endpoints must include an integration test.”
-“Use uv for Python dependencies; don’t add requirements.txt.”
-“Keep React components under 300 lines and move shared state into hooks.”
-“Every merge request must explain what changed, why, and how it was tested.”
-“Use our design tokens—don’t introduce new colors or spacing values.”
-“Never modify generated files directly; update the source and regenerate them.”
+*  “All new API endpoints must include an integration test.”
+* “Use uv for Python dependencies; don’t add requirements.txt.”
+* “Keep React components under 300 lines and move shared state into hooks.”
+* “Every merge request must explain what changed, why, and how it was tested.”
+* “All buttons on this website should glow red like in this picture.”
+
 
 ## Install
 
