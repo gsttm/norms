@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, w
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { runGit } from "@norms/git";
-import { loadNorms, readLockfile, serializeNorm, serializeStarterPack } from "@norms/core";
+import { loadNorms, readLockfile, serializeNorm, serializeStarterPack, STARTER_PACK } from "@norms/core";
 import { checkProject, explainProject, initProject, lintProject, proposeNorm, syncProject } from "../src/commands";
 
 const roots: string[] = [];
@@ -23,7 +23,7 @@ describe("CLI commands", () => {
     writeFileSync(join(root, ".github/copilot-instructions.md"), "# Copilot\n\nKeep Copilot's rule.\n");
     const result = initProject(root, true, cache(root));
     expect(result.summary).toBe("Norms initialized.");
-    expect((result.data as { seeded: string[] }).seeded).toHaveLength(9);
+    expect((result.data as { seeded: string[] }).seeded).toHaveLength(STARTER_PACK.norms.length);
     expect((result.data as { created: string[] }).created).toContain(".norms/config.yaml");
     expect(result.details).toContain("created .norms/");
     expect(result.details).not.toContain("created .norms/config.yaml");
@@ -62,7 +62,7 @@ describe("CLI commands", () => {
     initProject(root, false, cache(root));
     proposeNorm(root, { id: "backend.repositories", scopes: ["src/controllers/**"], body: "Use repositories." });
     syncProject(root);
-    expect(checkProject(root).data).toEqual({ valid: true, norms: 10, imports: 0 });
+    expect(checkProject(root).data).toEqual({ valid: true, norms: STARTER_PACK.norms.length + 1, imports: 0 });
     for (const path of ["AGENTS.md", "CLAUDE.md", ".cursor/rules/norms.mdc", ".github/copilot-instructions.md"]) {
       expect(readFileSync(join(root, path), "utf8")).toContain("backend.repositories");
     }
@@ -92,7 +92,7 @@ describe("CLI commands", () => {
       const adapter = join(root, path);
       writeFileSync(adapter, readFileSync(adapter, "utf8").replaceAll("\n", "\r\n"));
     }
-    expect(checkProject(root).data).toEqual({ valid: true, norms: 10, imports: 0 });
+    expect(checkProject(root).data).toEqual({ valid: true, norms: STARTER_PACK.norms.length + 1, imports: 0 });
     writeFileSync(join(root, ".cursor/rules/norms.mdc"), "stale\n");
     expect(() => checkProject(root)).toThrow(".cursor/rules/norms.mdc is stale");
   });

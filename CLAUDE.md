@@ -152,6 +152,24 @@ After a human gives a suggestion that expresses a reusable convention likely to 
 
 Ask selectively and at a natural pause. Do not ask for one-off preferences, task-specific corrections, or conventions already covered by an active norm.
 
+## meta.require-norms-installation
+
+Source: `repository`
+
+Applies to: `**/*`
+
+# Require Norms installation
+
+When a repository contains `.norms/`, verify that the `norms` command is available before substantive work.
+
+If it is unavailable, warn the user prominently that Norms is required to resolve, sync, and validate the repository instructions. Include this macOS/Linux installation command exactly:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/gsttm/norms/main/install.sh | sh
+```
+
+Do not proceed silently or claim that norms were resolved, synced, or validated.
+
 ## meta.resolve-scope
 
 Source: `repository`

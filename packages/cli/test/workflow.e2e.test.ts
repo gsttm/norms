@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { STARTER_PACK } from "@norms/core";
 import { runGit } from "@norms/git";
 
 const cli = join(dirname(fileURLToPath(import.meta.url)), "../src/index.tsx");
@@ -15,7 +16,7 @@ afterEach(() => {
 describe("golden two-repository workflow", () => {
   test("initializes, proposes, syncs, checks, and imports norms", () => {
     const source = repository("source");
-    expect(command(source, ["init", "--no-import"])).toMatchObject({ sources: 1, norms: 9 });
+    expect(command(source, ["init", "--no-import"])).toMatchObject({ sources: 1, norms: STARTER_PACK.norms.length });
     expect(command(source, [
       "propose",
       "--id", "shared.typescript",
@@ -26,15 +27,15 @@ describe("golden two-repository workflow", () => {
       path: ".norms/norms/shared/typescript.md",
       source: "repository",
     });
-    expect(command(source, ["sync"])).toMatchObject({ sources: 1, norms: 10 });
-    expect(command(source, ["check"])).toEqual({ valid: true, norms: 10, imports: 0 });
+    expect(command(source, ["sync"])).toMatchObject({ sources: 1, norms: STARTER_PACK.norms.length + 1 });
+    expect(command(source, ["check"])).toEqual({ valid: true, norms: STARTER_PACK.norms.length + 1, imports: 0 });
     runGit(source, ["add", "--all"]);
     runGit(source, ["commit", "--quiet", "-m", "Add shared norm"]);
     const commit = runGit(source, ["rev-parse", "HEAD"]);
 
     const consumer = repository("consumer");
     writeFileSync(join(consumer, "AGENTS.md"), "# Existing instructions\n\nKeep changes focused.\n");
-    expect(command(consumer, ["init"])).toMatchObject({ sources: 1, norms: 10 });
+    expect(command(consumer, ["init"])).toMatchObject({ sources: 1, norms: STARTER_PACK.norms.length + 1 });
     writeFileSync(
       join(consumer, ".norms/config.yaml"),
       `version: 1\nsources:\n  - name: repository\n    path: norms\n  - name: shared\n    git: ${JSON.stringify(source)}\n    ref: HEAD\n    path: .norms/norms\n`,
@@ -42,11 +43,11 @@ describe("golden two-repository workflow", () => {
 
     expect(command(consumer, ["sync", "--update"])).toMatchObject({
       sources: 2,
-      norms: 11,
+      norms: STARTER_PACK.norms.length + 2,
       updated: true,
       lockfile: { sources: [{ name: "shared", git: source, ref: "HEAD", commit }] },
     });
-    expect(command(consumer, ["check"])).toEqual({ valid: true, norms: 11, imports: 1 });
+    expect(command(consumer, ["check"])).toEqual({ valid: true, norms: STARTER_PACK.norms.length + 2, imports: 1 });
 
     const typescript = command(consumer, ["context", "src/index.ts"]) as Context;
     expect(typescript.norms.map(({ id }) => id)).toContain("repository.imported-agent-instructions");

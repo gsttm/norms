@@ -8,6 +8,7 @@ import handleExceptions from "../../../.norms/norms/meta/handle-exceptions.md" w
 import inspectAssets from "../../../.norms/norms/meta/inspect-assets.md" with { type: "text" };
 import normsUsage from "../../../.norms/norms/meta/norms-usage.md" with { type: "text" };
 import proposeNormsSelectively from "../../../.norms/norms/meta/propose-norms-selectively.md" with { type: "text" };
+import requireNormsInstallation from "../../../.norms/norms/meta/require-norms-installation.md" with { type: "text" };
 import resolveScope from "../../../.norms/norms/meta/resolve-scope.md" with { type: "text" };
 import respectImportOwnership from "../../../.norms/norms/meta/respect-import-ownership.md" with { type: "text" };
 import verifyCompliance from "../../../.norms/norms/meta/verify-compliance.md" with { type: "text" };
@@ -102,6 +103,7 @@ export const STARTER_PACK: StarterPack = {
     ["meta/inspect-assets.md", inspectAssets],
     ["meta/norms-usage.md", normsUsage],
     ["meta/propose-norms-selectively.md", proposeNormsSelectively],
+    ["meta/require-norms-installation.md", requireNormsInstallation],
     ["meta/resolve-scope.md", resolveScope],
     ["meta/respect-import-ownership.md", respectImportOwnership],
     ["meta/verify-compliance.md", verifyCompliance],
