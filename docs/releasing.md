@@ -2,6 +2,8 @@
 
 The root and VS Code package versions must match. Tags use `vX.Y.Z`.
 
+The exact release commit must have a completed, successful `CI` push run. The release workflow rejects any tag without one.
+
 ```sh
 bun ci
 bun run check

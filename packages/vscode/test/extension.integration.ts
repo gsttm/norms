@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as vscode from "vscode";
-import { serializeNorm } from "@norms/core";
+import { serializeNorm, STARTER_PACK } from "@norms/core";
 import type { NormsExtensionApi } from "../src/extension";
 
 suite("Norms VS Code extension", () => {
@@ -76,7 +76,7 @@ suite("Norms VS Code extension", () => {
     api.initialize(uninitialized);
     const repository = api.repositories().find(({ root }) => root === uninitialized);
     assert.equal(repository?.initialized, true);
-    assert.equal(repository?.norms.length, 9);
+    assert.equal(repository?.norms.length, STARTER_PACK.norms.length);
     assert.equal(existsSync(join(uninitialized, "AGENTS.md")), true);
   });
 
